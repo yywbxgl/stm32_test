@@ -2,6 +2,7 @@
 #include "delay.h"
 #include "usart.h"
 #include "led.h"
+#include "beep.h"
  
  
 /************************************************
@@ -16,17 +17,18 @@
 
 
  int main(void)
- {	
-	delay_init();	    //延时函数初始化	  
-	LED_Init();		  	//初始化与LED连接的硬件接口
+ {
+	delay_init();	    	 //延时函数初始化	  
+	LED_Init();		  	 	//初始化与LED连接的硬件接口
+	BEEP_Init();         	//初始化蜂鸣器端口
 	while(1)
 	{
 		LED0=0;
-		LED1=1;
-		delay_ms(500);	 //延时300ms
-		LED0=1;
-		LED1=0;
-		delay_ms(500);	//延时300ms
+		BEEP=0;		  
+		delay_ms(500);//延时300ms
+		LED0=1;	  
+		BEEP=1;  
+		delay_ms(500);//延时300ms
 	}
  }
 
