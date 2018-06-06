@@ -1,13 +1,12 @@
-#include "sys.h"
-#include "delay.h"
-#include "usart.h"
 #include "led.h"
+#include "delay.h"
+#include "key.h"
+#include "sys.h"
 #include "beep.h"
  
- 
 /************************************************
- ALIENTEK战舰STM32开发板实验1
- 跑马灯实验 
+ ALIENTEK战舰STM32开发板实验3
+ 按键输入实验  
  技术支持：www.openedv.com
  淘宝店铺：http://eboard.taobao.com 
  关注微信公众平台微信号："正点原子"，免费获取STM32资料。
@@ -18,56 +17,38 @@
 
  int main(void)
  {
-	delay_init();	    	 //延时函数初始化	  
-	LED_Init();		  	 	//初始化与LED连接的硬件接口
-	BEEP_Init();         	//初始化蜂鸣器端口
-	while(1)
-	{
-		LED0=0;
-		BEEP=0;		  
-		delay_ms(500);//延时300ms
-		LED0=1;	  
-		BEEP=1;  
-		delay_ms(500);//延时300ms
-	}
- }
-
-
-//int main(void)
-//{ 
-//	delay_init();		  	//初始化延时函数
-//	LED_Init();		        //初始化LED端口
-//	while(1)
-//	{
-//		GPIO_ResetBits(GPIOB,GPIO_Pin_5);  //LED0对应引脚GPIOB.5拉低，亮  等同LED0=0;
-//		GPIO_SetBits(GPIOE,GPIO_Pin_5);   //LED1对应引脚GPIOE.5拉高，灭 等同LED1=1;
-//		delay_ms(1000);  		   			//延时300ms
-//		GPIO_SetBits(GPIOB,GPIO_Pin_5);	   //LED0对应引脚GPIOB.5拉高，灭  等同LED0=1;
-//		GPIO_ResetBits(GPIOE,GPIO_Pin_5); //LED1对应引脚GPIOE.5拉低，亮 等同LED1=0;
-//		delay_ms(1000);                     //延时300ms
-//	}
-//} 
- 
-
+ 	vu8 key=0;	
+	delay_init();   //延时函数初始化	  
+ 	LED_Init();		//LED端口初始化
+	KEY_Init();     //初始化与按键连接的硬件接口
+	BEEP_Init();    //初始化蜂鸣器端口
+	LED0=0;		    //先点亮红灯
 	
-/**
-*******************下面注释掉的代码是通过 直接操作寄存器 方式实现IO口控制**************************************
-int main(void)
-{ 
- 
-	delay_init();		  //初始化延时函数
-	LED_Init();		        //初始化LED端口
 	while(1)
 	{
-     GPIOB->BRR=GPIO_Pin_5;//LED0亮
-	   GPIOE->BSRR=GPIO_Pin_5;//LED1灭
-		 delay_ms(300);
-     GPIOB->BSRR=GPIO_Pin_5;//LED0灭
-	   GPIOE->BRR=GPIO_Pin_5;//LED1亮
-		 delay_ms(300);
-
-	 }
- }
-**************************************************************************************************
-**/
-
+ 		key=KEY_Scan(0);	//得到键值
+	   	if(key)
+		{						   
+			switch(key)
+			{				 
+				case WKUP_PRES:	//控制蜂鸣器
+					BEEP=!BEEP;
+					break;
+				case KEY2_PRES:	//控制LED0翻转
+					LED0=!LED0;
+					break;
+				case KEY1_PRES:	//控制LED1翻转	 
+					LED1=!LED1;
+					break;
+				case KEY0_PRES:	//同时控制LED0,LED1翻转 
+					LED0=!LED0;
+					LED1=!LED1;
+					break;
+			}
+		}
+		else
+		{
+			delay_ms(10); 	
+		}			
+	}	 
+}
