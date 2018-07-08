@@ -29,3 +29,19 @@ void BEEP_Init(void)
  GPIO_ResetBits(GPIOB,GPIO_Pin_8);						 //输出0，关闭蜂鸣器输出
 
 }
+
+
+//打开蜂鸣器
+void BEEP_Set(void)
+{
+	GPIO_SetBits(GPIOB,GPIO_Pin_8);						//输出1，打开蜂鸣器输出
+}
+
+//关闭蜂鸣器
+void BEEP_Reset(void)
+{
+	GPIO_ResetBits(GPIOB,GPIO_Pin_8);						//输出0，关闭蜂鸣器输出
+}
+
+
+
