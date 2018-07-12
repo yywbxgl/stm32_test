@@ -8,6 +8,7 @@
 //#include "lcd.h"
 #include "test.h"
 #include "rtc.h"
+#include "sim800c.h"
 												 
 extern void led_set(u8 sta);
 extern void test_fun(void(*ledset)(u8),u8 sta);
@@ -24,7 +25,7 @@ struct _m_usmart_nametab usmart_nametab[]=
 	(void*)led1_set,"void led1_set(u8 sta)",
 	(void*)led_test,"void led_test(void)",
 	(void*)beep_test,"void beep_test(void)",
-
+	(void*)sim800c_send_cmd,"u8 sim800c_send_cmd(u8* ,u8* ,u16)",
 	(void*)RTC_Set,"u8 RTC_Set(u16 syear,u8 smon,u8 sday,u8 hour,u8 min,u8 sec)",	
 };						  
 ///////////////////////////////////END///////////////////////////////////////////////
