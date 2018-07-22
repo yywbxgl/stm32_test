@@ -9,6 +9,7 @@
 #include "led.h"
 #include "beep.h"
 #include "usmart.h"
+#include "fm1702.h"
 
 
 
@@ -26,6 +27,10 @@ void led_test(void);
 
 //·äÃùÆ÷²âÊÔ½Ó¿Ú
 void beep_test(void);
+
+
+//IC¿¨¶ÁĞ´²âÊÔ
+void fm1702_test(void);
 
 
 #endif
