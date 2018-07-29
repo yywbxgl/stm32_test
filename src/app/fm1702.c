@@ -396,18 +396,18 @@ void Init_FM1702(void)
 
     GPIO_Init(MF522_NSS_PORT, &GPIO_InitStructure);
 
-  //  printf("Init_FM1702 init gpio finish.\r\n");
+    printf("Init_FM1702 init gpio finish.\r\n");
     delay(10000);
     
 
-  //  printf("Init_FM1702 rest begin.\r\n");
+    printf("Init_FM1702 rest begin.\r\n");
     RST_H;  //¸´Î»
     for (i = 0; i < 0x3fff; i++);
     RST_L;
     for (i = 0; i < 0x3fff; i++);
     SCK_L;	 
 
-  //  printf("Init_FM1702 rest end.\r\n");
+    printf("Init_FM1702 rest end.\r\n");
 
     temp = read_reg(0x05);
     printf("Init_FM1702 read_reg(0x05) ret=%x.\r\n", temp);

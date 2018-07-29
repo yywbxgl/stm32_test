@@ -7,7 +7,7 @@
 #include "usmart.h"
 #include "fm1702.h"
 #include "rtc.h"
-/*
+
 //LED测试接口
 void led_test(void)
 {
@@ -19,7 +19,7 @@ void led_test(void)
     LED0 = !LED0;
     LED1 = !LED1;
 }
-*/
+
 
 //蜂鸣器测试接口
 void beep_test(void)
@@ -88,7 +88,9 @@ void fm1702_test(void)
     unsigned char status, try;
     unsigned char buf[16], DefaultKey[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; 
 
+    LED0 = 0;
     Init_FM1702();
+    LED0 = 1;
 
     try = 5;
     while(--try)
@@ -116,15 +118,15 @@ void fm1702_test(void)
 
         status=MIF_READ(buf,4);             //读卡，读取1扇区0块数据到buffer[0]-buffer[15]
         printf("fm1702_test MIF_READ. ret=%d\r\n", status);
-				printf("READ out is %x%x%x%x\r\n", buf[0],buf[1],buf[2],buf[3]);
-				buf[0]+=1;
-        status=MIF_Write(buf,4);       //写卡，将buffer[0]-buffer[15]写入1扇区0块
+        //status=MIF_Write(buffer,4);       //写卡，将buffer[0]-buffer[15]写入1扇区0块
         if(status == FM1702_OK)
         {
             //读写成功，点亮LED
             printf("fm1702_test, read and write success.\r\n");
+            delay_ms(10000);
         }
         
+        delay_ms(1000);
 
     }
 }
