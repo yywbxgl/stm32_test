@@ -152,25 +152,25 @@
 //∂Àø⁄∂®“Â
 /////////////////////////////////////////////////////////////////////
 //FM1702
-#define MF522_RST_PIN                    GPIO_Pin_8
-#define MF522_RST_PORT                   GPIOG
-#define MF522_RST_CLK                    RCC_APB2Periph_GPIOG
+#define MF522_RST_PIN                    GPIO_Pin_6
+#define MF522_RST_PORT                   GPIOC
+#define MF522_RST_CLK                    RCC_APB2Periph_GPIOC
   
-#define MF522_MISO_PIN                   GPIO_Pin_14
-#define MF522_MISO_PORT                  GPIOB
-#define MF522_MISO_CLK                   RCC_APB2Periph_GPIOB
+#define MF522_MISO_PIN                   GPIO_Pin_6
+#define MF522_MISO_PORT                  GPIOA
+#define MF522_MISO_CLK                   RCC_APB2Periph_GPIOA
 
-#define MF522_MOSI_PIN                   GPIO_Pin_15
-#define MF522_MOSI_PORT                  GPIOB
-#define MF522_MOSI_CLK                   RCC_APB2Periph_GPIOB
+#define MF522_MOSI_PIN                   GPIO_Pin_7
+#define MF522_MOSI_PORT                  GPIOA
+#define MF522_MOSI_CLK                   RCC_APB2Periph_GPIOA
 
-#define MF522_SCK_PIN                    GPIO_Pin_13
-#define MF522_SCK_PORT                   GPIOB
-#define MF522_SCK_CLK                    RCC_APB2Periph_GPIOB 
+#define MF522_SCK_PIN                    GPIO_Pin_5
+#define MF522_SCK_PORT                   GPIOA
+#define MF522_SCK_CLK                    RCC_APB2Periph_GPIOA 
 
-#define MF522_NSS_PIN                    GPIO_Pin_7
-#define MF522_NSS_PORT                   GPIOG
-#define MF522_NSS_CLK                    RCC_APB2Periph_GPIOG 
+#define MF522_NSS_PIN                    GPIO_Pin_4
+#define MF522_NSS_PORT                   GPIOA
+#define MF522_NSS_CLK                    RCC_APB2Periph_GPIOA 
 
 //÷∏ æµ∆
 #define RST_H                            GPIO_SetBits(MF522_RST_PORT, MF522_RST_PIN)
@@ -191,7 +191,7 @@ extern uchar Select_Card(void);                                           //—°ø®
 extern uchar Load_keyE2_CPY(uchar *uncoded_keys);                         //º”‘ÿ√‹¬Î
 extern uchar Authentication(uchar *UID, uchar SecNR, uchar mode);         //—È÷§√‹¬Î
 extern uchar MIF_READ(uchar *buff, uchar Block_Adr);                      //∂¡ø®
-extern uchar MIF_Write(uchar *buff, uchar Block_Adr);                     //–¥ø® 
+extern uchar MIF_Write(uchar *buff, uchar Block_Adr);                     //–¥ø® 																						//ICø®∂¡–¥≤‚ ‘
 
 extern unsigned char UID[5];
 

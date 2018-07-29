@@ -57,8 +57,8 @@ u8 sim800c_send_cmd(u8 *cmd,u8 *ack,u16 waittime)
 	
 	if((u32)cmd<=0XFF)
 	{
-		while((USART3->SR&0X40)==0);//等待上一次数据发送完成  
-		USART3->DR=(u32)cmd;
+		while((USART2->SR&0X40)==0);//等待上一次数据发送完成  
+		USART2->DR=(u32)cmd;
 	}else u3_printf("%s\r\n",cmd);//发送命令
 
 	if(ack&&waittime)		//需要等待应答

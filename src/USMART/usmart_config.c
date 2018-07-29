@@ -21,7 +21,7 @@ struct _m_usmart_nametab usmart_nametab[]=
     (void*)read_addr,"u32 read_addr(u32 addr)",
     (void*)write_addr,"void write_addr(u32 addr,u32 val)",
 #endif
-    (void*)led_test,"void led_test(void)",
+//    (void*)led_test,"void led_test(void)",
     (void*)beep_test,"void beep_test(void)",
     (void*)usart_test,"void usart_test(void)",
     (void*)rtc_test,"void rtc_test(void)",
