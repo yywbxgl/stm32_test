@@ -4,7 +4,7 @@
 #include "stdio.h"	 	 
 #include "string.h"	 
 #include "timer.h"
-
+#include "usart.h"
  
 
 //串口接收缓存区 	
@@ -117,6 +117,23 @@ void u3_printf(char* fmt,...)
 		USART_SendData(USART2,USART3_TX_BUF[j]); 
 	} 
 }
+
+
+//串口3,printf 函数,发送指定长度的二进制数据
+void u3_printf_hex(u8* buf, u8 len)
+{
+    u16 j;
+    //printf("\r\n------\r\n ");
+    for(j=0;j<len;j++)//循环发送数据
+    {
+        //printf("%02x ",buf[j]);
+        while(USART_GetFlagStatus(USART2,USART_FLAG_TC)==RESET); //循环发送,直到发送完毕
+        USART_SendData(USART2,buf[j]); 
+    }
+    //printf("\r\n-------\r\n ");
+}
+
+
 
  
 

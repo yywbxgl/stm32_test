@@ -75,7 +75,7 @@ u8 sim800c_send_cmd(u8 *cmd,u8 *ack,u16 waittime)
         if(waittime==0)res=1; 
     }
     return res;
-} 
+}
 
 
 
@@ -113,7 +113,7 @@ void sim800c_tcpudp_test(u8 mode,u8* ipaddr,u8* port)
         {
             sim800c_send_cmd("AT+CIPCLOSE=1","CLOSE OK",500);   //关闭连接
             sim800c_send_cmd("AT+CIPSHUT","SHUT OK",500);       //关闭移动场景 
-            //sim800c_send_cmd(p,"OK",500);                       //尝试重新连接
+            //sim800c_send_cmd(p,"OK",500);                     //尝试重新连接
             connectsta=0;   
             hbeaterrcnt=0;
             break; //关闭链接，跳出测试
@@ -165,7 +165,7 @@ u8 sim800c_gprs_test(void)
 {
     const u8 *port="8086";  //端口固定为8086,当你的电脑8086端口被其他程序占用的时候,请修改为其他空闲端口
     u8 mode=0;              //0,TCP连接;1,UDP连接
-    u8 ipbuf[16]="124.90.130.2";        //IP缓存
+    u8 ipbuf[16]="124.90.130.2";//IP缓存
     printf("sim800c_gprs_test. mode=[%s] ip=[%s:%s]\r\n", (u8*)modetbl[mode], ipbuf, (u8*)port);
     sim800c_send_cmd("AT+CIPCLOSE=1","CLOSE OK",100);   //关闭连接
     sim800c_send_cmd("AT+CIPSHUT","SHUT OK",100);       //关闭移动场景 
@@ -189,7 +189,7 @@ void sim800c_mtest_ui()
     u8 *p, *p1, *p2;
     p=mymalloc(SRAMIN,50);//申请50个字节的内存
     USART3_RX_STA=0;
-    if(sim800c_send_cmd("AT+CGMI","OK",200)==0)             //查询制造商名称
+    if(sim800c_send_cmd("AT+CGMI","OK",200)==0)//查询制造商名称
     { 
         p1=(u8*)strstr((const char*)(USART3_RX_BUF+2),"\r\n");
         p1[0]=0;//加入结束符
@@ -213,7 +213,7 @@ void sim800c_mtest_ui()
         printf("sim800c_mtest_ui. %s\r\n", (char*)p);
         USART3_RX_STA=0;        
     }
-    if(sim800c_send_cmd("AT+CNUM","+CNUM",200)==0)          //查询本机号码
+    if(sim800c_send_cmd("AT+CNUM","+CNUM",200)==0)//查询本机号码
     { 
         p1=(u8*)strstr((const char*)(USART3_RX_BUF),",");
         p2=(u8*)strstr((const char*)(p1+2),"\"");
@@ -255,7 +255,7 @@ u8 sim800c_gsminfo_show()
         p2[0]=0;//加入结束符
         sprintf((char*)p,"信号质量:%s",p1+2);
         printf("sim800c_gsminfo_show. %s\r\n", (char*)p);
-        USART3_RX_STA=0;        
+        USART3_RX_STA=0;
     }else res|=1<<2;
     if(sim800c_send_cmd("AT+CBC","+CBC:",200)==0)       //查询电池电量
     { 
