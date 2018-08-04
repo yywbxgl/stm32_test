@@ -32,7 +32,7 @@ u16 mqtt_connect_message(u8 *mqtt_message,char *client_id,char *username,char *p
 	mqtt_message[baseIndex++] = 84;		// ASCII Code for T    
 	mqtt_message[baseIndex++] = 84;		// ASCII Code for T    
 	mqtt_message[baseIndex++] = 4;		// MQTT Protocol version = 4    
-	mqtt_message[baseIndex++] = 2;		// conn flags 
+	mqtt_message[baseIndex++] = 194;	// conn flags   C2 ÉèÖÃÓÃ»§ÃÜÂë clean flag
 	mqtt_message[baseIndex++] = 0;		// Keep-alive Time Length MSB    
 	mqtt_message[baseIndex++] = 60;		// Keep-alive Time Length LSB    
 	mqtt_message[baseIndex++] = (0xff00&client_id_length)>>8;// Client ID length MSB    

@@ -18,10 +18,10 @@
 #include <string.h>
 
 
-#define HOST_IP "124.90.130.2"
-#define HOST_PORT "8086"
-//#define HOST_IP "114.215.73.18"
-//#define HOST_PORT "1883"
+//#define HOST_IP "124.90.130.2"
+//#define HOST_PORT "8086"
+#define HOST_IP "114.215.73.18"
+#define HOST_PORT "1883"
 u8 mqtt_msg[200]={0}; //mqtt消息包
 u8 send_cmd[20]= {0};
 
@@ -87,10 +87,10 @@ int main(void)
     if(sim800c_send_cmd(send_cmd,">",200)==0)//发送数据
     {
         u3_printf_hex(mqtt_msg, len);
-        delay_ms(3000);                       //必须加延时
+        delay_ms(1000);                      //必须加延时
         //sim800c_send_cmd((u8*)0X1A,0,0);      //CTRL+Z,结束数据发送,启动一次传输
         printf("mqtt_connect... \r\n");
-        delay_ms(3000);                       //必须加延时
+        delay_ms(1000);                      //必须加延时
     }
     else
     {
@@ -106,10 +106,10 @@ int main(void)
     if(sim800c_send_cmd(send_cmd,">",200)==0)//发送数据
     {
         u3_printf_hex(mqtt_msg, len);
-        delay_ms(3000);                     //必须加延时
+        delay_ms(1000);                 //必须加延时
         //sim800c_send_cmd((u8*)0X1A,0,0);    //CTRL+Z,结束数据发送,启动一次传输
         printf("mqtt_subscribe... \r\n");
-        delay_ms(3000);                     //必须加延时
+        delay_ms(1000);               //必须加延时
     }
 
 
@@ -117,14 +117,16 @@ int main(void)
     while(1)
     {
         len=mqtt_publish_message(mqtt_msg, TOPIC, "device_sun_smile", 0);
+        printf("send len = %d\r\n", len);
+        PrintHex(mqtt_msg,len);
         sprintf((char*)send_cmd, "AT+CIPSEND=%d", len);//接收到的字节数
         if(sim800c_send_cmd(send_cmd,">",200)==0)//发送数据
         {
             u3_printf_hex(mqtt_msg, len);
-            delay_ms(3000);                      //必须加延时
-            sim800c_send_cmd((u8*)0X1A,0,0);    //CTRL+Z,结束数据发送,启动一次传输
-            printf("mqtt_publish...\r\n");
-            delay_ms(3000);
+            delay_ms(1000);                      //必须加延时
+            //sim800c_send_cmd((u8*)0X1A,0,0);    //CTRL+Z,结束数据发送,启动一次传输
+            //printf("mqtt_publish...\r\n");
+            delay_ms(1000);
         }
     }
 
