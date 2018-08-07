@@ -61,7 +61,7 @@ int main(void)
     DCF_Init();             //电磁阀初始化
     DPinit();               //数码管初始化
 
-    LOGD("hardware init finish.");
+    LOGI("hardware init finish.");
 
     //DCF_Set();
 
@@ -165,13 +165,13 @@ u8 connect_to_server(u8 mode,u8* ipaddr,u8* port)
 
     while(sim800c_send_cmd("AT","OK",100)) //检测是否应答AT指令 
     {   
-        printf("no response. sim800c未回应AT指令.\r\n");
+        LOGE("no response. sim800c未回应AT指令.\r\n");
         delay_ms(400);
     }
 
     while(sim800c_send_cmd("AT+CPIN?","OK",200))
     {
-        printf("no response. sim800c未检测到SIM卡.\r\n");
+        LOGE("no response. sim800c未检测到SIM卡.\r\n");
         delay_ms(400);
     }
 
@@ -185,7 +185,7 @@ u8 connect_to_server(u8 mode,u8* ipaddr,u8* port)
     }
     p1=(u8*)strstr((const char*)(USART3_RX_BUF+2),"\r\n");
     p1[0]=0;//加入结束符 
-    printf("序列号: %s\r\n", USART3_RX_BUF+2);
+    LOGI("检测到序列号: %s\r\n", USART3_RX_BUF+2);
     USART3_RX_STA=0;
 		
 ////    if (sim800c_send_cmd("ATE0","OK",200));//不回显

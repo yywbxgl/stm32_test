@@ -7,6 +7,7 @@
 #include "string.h"
 #include "usart3.h"
 #include "timer.h"
+#include "logging.h"
 
 
 
@@ -36,7 +37,7 @@ u8* sim800c_check_cmd(u8 *str)
     if(USART3_RX_STA&0X8000)        //接收到一次数据了
     { 
         USART3_RX_BUF[USART3_RX_STA&0X7FFF]=0;//添加结束符
-        printf("get response=%s", (const char*)USART3_RX_BUF);
+        LOGD("get response=%s", (const char*)USART3_RX_BUF);
         strx=strstr((const char*)USART3_RX_BUF,(const char*)str);
     }
     return (u8*)strx;
@@ -53,7 +54,7 @@ u8 sim800c_send_cmd(u8 *cmd,u8 *ack,u16 waittime)
     u8 res=0; 
     USART3_RX_STA=0;
     
-    printf("sim800c_send_cmd. cmd=[%s]\r\n", cmd);
+    LOGD("send cmd=[%s]", cmd);
     
     if((u32)cmd<=0XFF)
     {
