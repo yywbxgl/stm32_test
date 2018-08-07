@@ -14,7 +14,7 @@
 #include "digitron.h"
 #include "mqtt_app.h"
 #include "malloc.h"
-
+#include "logging.h"
 #include <string.h>
 
 
@@ -46,6 +46,7 @@ void PrintHex(u8 *buf,u16 len)
 
 int main(void)
 {
+
     u8 ipbuf[16]= HOST_IP;//IP缓存
     const u8 *port= HOST_PORT;  //端口固定为8086,当你的电脑8086端口被其他程序占用的时候,请修改为其他空闲端口
     u8 mode= 0;              //0,TCP连接;1,UDP连接
@@ -53,13 +54,14 @@ int main(void)
 
     delay_init();           //延时函数初始化   
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2); //设置NVIC中断分组2:2位抢占优先级，2位响应优先级
-    uart_init(115200);      //串口初始化为115200
+    uart_init(115200);      //调试打印串口，初始化为115200
     usart3_init(115200);    //初始化串口3,与SIM800C通信
     usmart_dev.init(SystemCoreClock/1000000);   //串口调试组件USMART初始化
     RTC_Init();             //RTC初始化
     DCF_Init();             //电磁阀初始化
     DPinit();               //数码管初始化
-    printf("Now Time:%d-%d-%d %d:%d:%d\r\n",calendar.w_year,calendar.w_month,calendar.w_date,calendar.hour,calendar.min,calendar.sec);//输出闹铃时间 
+
+    LOGD("hardware init finish.");
 
     //DCF_Set();
 
@@ -92,11 +94,6 @@ int main(void)
         printf("mqtt_connect... \r\n");
         delay_ms(1000);                      //必须加延时
     }
-    else
-    {
-        printf("no response. 发送数据失败 \r\n");
-    }
-
 
 
     len=mqtt_subscribe_message(mqtt_msg,TOPIC,1,1);//订阅test主题
@@ -126,6 +123,7 @@ int main(void)
             delay_ms(1000);                      //必须加延时
             //sim800c_send_cmd((u8*)0X1A,0,0);    //CTRL+Z,结束数据发送,启动一次传输
             //printf("mqtt_publish...\r\n");
+            delay_ms(1000);
             delay_ms(1000);
         }
     }
@@ -171,37 +169,54 @@ u8 connect_to_server(u8 mode,u8* ipaddr,u8* port)
         delay_ms(400);
     }
 
-    if (sim800c_send_cmd("ATE0","OK",200));//不回显
-        printf("no response.sim800c未关闭回显.\r\n");
+    while(sim800c_send_cmd("AT+CPIN?","OK",200))
+    {
+        printf("no response. sim800c未检测到SIM卡.\r\n");
+        delay_ms(400);
+    }
+
+    sim800c_send_cmd("ATE0","OK",200);
 
     USART3_RX_STA=0;
-    if(sim800c_send_cmd("AT+CGSN","OK",200))//查询SIM800C产品序列号
+    while(sim800c_send_cmd("AT+CGSN","OK",200))
     {
         printf("no response. sim800c未返回序列号.\r\n");
+        delay_ms(400);
     }
-    else
-    {
-        p1=(u8*)strstr((const char*)(USART3_RX_BUF+2),"\r\n");
-        p1[0]=0;//加入结束符 
-        printf("序列号: %s\r\n", USART3_RX_BUF+2);
-        USART3_RX_STA=0;
-    }
+    p1=(u8*)strstr((const char*)(USART3_RX_BUF+2),"\r\n");
+    p1[0]=0;//加入结束符 
+    printf("序列号: %s\r\n", USART3_RX_BUF+2);
+    USART3_RX_STA=0;
+		
+////    if (sim800c_send_cmd("ATE0","OK",200));//不回显
+////        printf("no response.sim800c未关闭回显.\r\n");
+////		
+////    if(sim800c_send_cmd("AT+CGSN","OK",200))//查询SIM800C产品序列号
+////    {
+////        printf("no response. sim800c未返回序列号.\r\n");
+////    }
+////    else
+////    {
+////        p1=(u8*)strstr((const char*)(USART3_RX_BUF+2),"\r\n");
+////        p1[0]=0;//加入结束符 
+////        printf("序列号: %s\r\n", USART3_RX_BUF+2);
+////        USART3_RX_STA=0;
+////    }
 
-    if(sim800c_send_cmd("AT+CPIN?","OK",200))//检查SIM卡是否准备好
-    {
-        printf("no response. sim800c未返回本机号码.\r\n");
-    }
-
-    
-    if(sim800c_send_cmd("AT+CSQ","+CSQ:",200))//查询信号质量
-    {
-        printf("no response. sim800c未返回信号质量\r\n");
-    }
-
-    if(sim800c_send_cmd("AT+CCLK?","+CCLK:",200))
-    {
-        printf("no response. sim800c未返回日期\r\n");
-    }
+////    if(sim800c_send_cmd("AT+CPIN?","OK",200))//检查SIM卡是否准备好
+////    {
+////        printf("no response. sim800c未返回本机号码.\r\n");
+////    }
+////
+////    if(sim800c_send_cmd("AT+CSQ","+CSQ:",200))//查询信号质量
+////    {
+////        printf("no response. sim800c未返回信号质量\r\n");
+////    }
+////
+////    if(sim800c_send_cmd("AT+CCLK?","+CCLK:",200))
+////    {
+////        printf("no response. sim800c未返回日期\r\n");
+////    }
 
     //更新NTP时间
     //ntp_update();
