@@ -46,14 +46,14 @@
             <NotGenerated>0</NotGenerated>
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
-          <OutputDirectory>..\..\bin\</OutputDirectory>
+          <OutputDirectory>.\bin\</OutputDirectory>
           <OutputName>stm32_test</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>1</CreateHexFile>
           <DebugInformation>1</DebugInformation>
           <BrowseInformation>1</BrowseInformation>
-          <ListingPath>..\..\bin\</ListingPath>
+          <ListingPath>.\bin\</ListingPath>
           <HexFormatSelection>1</HexFormatSelection>
           <Merge32K>0</Merge32K>
           <CreateBatchFile>0</CreateBatchFile>
@@ -365,7 +365,7 @@
               <MiscControls></MiscControls>
               <Define>STM32F10X_HD,USE_STDPERIPH_DRIVER</Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\include;..\..\include\inc;..\..\src;..\..\src\system;..\..\src\hardware;..\..\src\app;..\..\src\hardware;..\..\src\USMART;..\..\test;..\..\src\app;..\..\src\mqtt</IncludePath>
+              <IncludePath>.\libs;.\libs\inc;.\src;.\src\system;.\src\hardware;.\src\app;.\src\hardware;.\src\USMART;.\test;.\src\app;.\src\mqtt</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -406,137 +406,132 @@
       </TargetOption>
       <Groups>
         <Group>
-          <GroupName>include</GroupName>
+          <GroupName>libs</GroupName>
           <Files>
             <File>
               <FileName>misc.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\include\src\misc.c</FilePath>
+              <FilePath>.\libs\src\misc.c</FilePath>
             </File>
             <File>
               <FileName>stm32f10x_adc.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\include\src\stm32f10x_adc.c</FilePath>
+              <FilePath>.\libs\src\stm32f10x_adc.c</FilePath>
             </File>
             <File>
               <FileName>stm32f10x_bkp.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\include\src\stm32f10x_bkp.c</FilePath>
+              <FilePath>.\libs\src\stm32f10x_bkp.c</FilePath>
             </File>
             <File>
               <FileName>stm32f10x_can.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\include\src\stm32f10x_can.c</FilePath>
+              <FilePath>.\libs\src\stm32f10x_can.c</FilePath>
             </File>
             <File>
               <FileName>stm32f10x_cec.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\include\src\stm32f10x_cec.c</FilePath>
+              <FilePath>.\libs\src\stm32f10x_cec.c</FilePath>
             </File>
             <File>
               <FileName>stm32f10x_crc.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\include\src\stm32f10x_crc.c</FilePath>
+              <FilePath>.\libs\src\stm32f10x_crc.c</FilePath>
             </File>
             <File>
               <FileName>stm32f10x_dac.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\include\src\stm32f10x_dac.c</FilePath>
+              <FilePath>.\libs\src\stm32f10x_dac.c</FilePath>
             </File>
             <File>
               <FileName>stm32f10x_dbgmcu.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\include\src\stm32f10x_dbgmcu.c</FilePath>
+              <FilePath>.\libs\src\stm32f10x_dbgmcu.c</FilePath>
             </File>
             <File>
               <FileName>stm32f10x_dma.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\include\src\stm32f10x_dma.c</FilePath>
+              <FilePath>.\libs\src\stm32f10x_dma.c</FilePath>
             </File>
             <File>
               <FileName>stm32f10x_exti.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\include\src\stm32f10x_exti.c</FilePath>
+              <FilePath>.\libs\src\stm32f10x_exti.c</FilePath>
             </File>
             <File>
               <FileName>stm32f10x_flash.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\include\src\stm32f10x_flash.c</FilePath>
+              <FilePath>.\libs\src\stm32f10x_flash.c</FilePath>
             </File>
             <File>
               <FileName>stm32f10x_fsmc.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\include\src\stm32f10x_fsmc.c</FilePath>
+              <FilePath>.\libs\src\stm32f10x_fsmc.c</FilePath>
             </File>
             <File>
               <FileName>stm32f10x_gpio.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\include\src\stm32f10x_gpio.c</FilePath>
+              <FilePath>.\libs\src\stm32f10x_gpio.c</FilePath>
             </File>
             <File>
               <FileName>stm32f10x_i2c.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\include\src\stm32f10x_i2c.c</FilePath>
+              <FilePath>.\libs\src\stm32f10x_i2c.c</FilePath>
             </File>
             <File>
               <FileName>stm32f10x_iwdg.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\include\src\stm32f10x_iwdg.c</FilePath>
+              <FilePath>.\libs\src\stm32f10x_iwdg.c</FilePath>
             </File>
             <File>
               <FileName>stm32f10x_pwr.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\include\src\stm32f10x_pwr.c</FilePath>
+              <FilePath>.\libs\src\stm32f10x_pwr.c</FilePath>
             </File>
             <File>
               <FileName>stm32f10x_rcc.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\include\src\stm32f10x_rcc.c</FilePath>
+              <FilePath>.\libs\src\stm32f10x_rcc.c</FilePath>
             </File>
             <File>
               <FileName>stm32f10x_rtc.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\include\src\stm32f10x_rtc.c</FilePath>
+              <FilePath>.\libs\src\stm32f10x_rtc.c</FilePath>
             </File>
             <File>
               <FileName>stm32f10x_sdio.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\include\src\stm32f10x_sdio.c</FilePath>
+              <FilePath>.\libs\src\stm32f10x_sdio.c</FilePath>
             </File>
             <File>
               <FileName>stm32f10x_spi.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\include\src\stm32f10x_spi.c</FilePath>
+              <FilePath>.\libs\src\stm32f10x_spi.c</FilePath>
             </File>
             <File>
               <FileName>stm32f10x_tim.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\include\src\stm32f10x_tim.c</FilePath>
+              <FilePath>.\libs\src\stm32f10x_tim.c</FilePath>
             </File>
             <File>
               <FileName>stm32f10x_usart.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\include\src\stm32f10x_usart.c</FilePath>
+              <FilePath>.\libs\src\stm32f10x_usart.c</FilePath>
             </File>
             <File>
               <FileName>stm32f10x_wwdg.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\include\src\stm32f10x_wwdg.c</FilePath>
+              <FilePath>.\libs\src\stm32f10x_wwdg.c</FilePath>
             </File>
             <File>
               <FileName>core_cm3.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\include\core_cm3.c</FilePath>
+              <FilePath>.\libs\core_cm3.c</FilePath>
             </File>
             <File>
               <FileName>startup_stm32f10x_hd.s</FileName>
               <FileType>2</FileType>
-              <FilePath>..\..\include\startup_stm32f10x_hd.s</FilePath>
-            </File>
-            <File>
-              <FileName>mqtt_app.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\src\app\mqtt_app.c</FilePath>
+              <FilePath>.\libs\startup_stm32f10x_hd.s</FilePath>
             </File>
           </Files>
         </Group>
@@ -544,164 +539,179 @@
           <GroupName>src</GroupName>
           <Files>
             <File>
+              <FileName>fm1702.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\app\fm1702.c</FilePath>
+            </File>
+            <File>
               <FileName>main.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\src\app\main.c</FilePath>
+              <FilePath>.\src\app\main.c</FilePath>
             </File>
             <File>
-              <FileName>stm32f10x_it.c</FileName>
+              <FileName>mqtt_app.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\src\app\stm32f10x_it.c</FilePath>
-            </File>
-            <File>
-              <FileName>system_stm32f10x.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\src\app\system_stm32f10x.c</FilePath>
-            </File>
-            <File>
-              <FileName>led.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\src\hardware\led.c</FilePath>
-            </File>
-            <File>
-              <FileName>delay.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\src\system\delay.c</FilePath>
-            </File>
-            <File>
-              <FileName>sys.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\src\system\sys.c</FilePath>
-            </File>
-            <File>
-              <FileName>usart.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\src\system\usart.c</FilePath>
-            </File>
-            <File>
-              <FileName>beep.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\src\hardware\beep.c</FilePath>
-            </File>
-            <File>
-              <FileName>key.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\src\hardware\key.c</FilePath>
-            </File>
-            <File>
-              <FileName>usmart.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\src\USMART\usmart.c</FilePath>
-            </File>
-            <File>
-              <FileName>usmart_config.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\src\USMART\usmart_config.c</FilePath>
-            </File>
-            <File>
-              <FileName>usmart_str.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\src\USMART\usmart_str.c</FilePath>
-            </File>
-            <File>
-              <FileName>rtc.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\src\hardware\rtc.c</FilePath>
-            </File>
-            <File>
-              <FileName>usart3.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\src\hardware\usart3.c</FilePath>
-            </File>
-            <File>
-              <FileName>timer.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\src\hardware\timer.c</FilePath>
+              <FilePath>.\src\app\mqtt_app.c</FilePath>
             </File>
             <File>
               <FileName>sim800c.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\src\app\sim800c.c</FilePath>
+              <FilePath>.\src\app\sim800c.c</FilePath>
             </File>
             <File>
-              <FileName>malloc.c</FileName>
+              <FileName>stm32f10x_it.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\src\system\malloc.c</FilePath>
+              <FilePath>.\src\app\stm32f10x_it.c</FilePath>
             </File>
             <File>
-              <FileName>spi.c</FileName>
+              <FileName>system_stm32f10x.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\src\hardware\spi.c</FilePath>
+              <FilePath>.\src\app\system_stm32f10x.c</FilePath>
             </File>
             <File>
-              <FileName>myiic.c</FileName>
+              <FileName>beep.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\src\hardware\myiic.c</FilePath>
-            </File>
-            <File>
-              <FileName>fm1702.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\src\app\fm1702.c</FilePath>
+              <FilePath>.\src\hardware\beep.c</FilePath>
             </File>
             <File>
               <FileName>dcf.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\src\hardware\dcf.c</FilePath>
+              <FilePath>.\src\hardware\dcf.c</FilePath>
             </File>
             <File>
               <FileName>digitron.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\src\hardware\digitron.c</FilePath>
+              <FilePath>.\src\hardware\digitron.c</FilePath>
+            </File>
+            <File>
+              <FileName>exti.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\hardware\exti.c</FilePath>
+            </File>
+            <File>
+              <FileName>key.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\hardware\key.c</FilePath>
+            </File>
+            <File>
+              <FileName>led.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\hardware\led.c</FilePath>
+            </File>
+            <File>
+              <FileName>myiic.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\hardware\myiic.c</FilePath>
+            </File>
+            <File>
+              <FileName>rtc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\hardware\rtc.c</FilePath>
+            </File>
+            <File>
+              <FileName>spi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\hardware\spi.c</FilePath>
+            </File>
+            <File>
+              <FileName>timer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\hardware\timer.c</FilePath>
+            </File>
+            <File>
+              <FileName>usart3.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\hardware\usart3.c</FilePath>
             </File>
             <File>
               <FileName>MQTTConnectClient.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\src\mqtt\MQTTConnectClient.c</FilePath>
+              <FilePath>.\src\mqtt\MQTTConnectClient.c</FilePath>
             </File>
             <File>
               <FileName>MQTTConnectServer.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\src\mqtt\MQTTConnectServer.c</FilePath>
+              <FilePath>.\src\mqtt\MQTTConnectServer.c</FilePath>
             </File>
             <File>
               <FileName>MQTTDeserializePublish.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\src\mqtt\MQTTDeserializePublish.c</FilePath>
+              <FilePath>.\src\mqtt\MQTTDeserializePublish.c</FilePath>
             </File>
             <File>
               <FileName>MQTTFormat.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\src\mqtt\MQTTFormat.c</FilePath>
+              <FilePath>.\src\mqtt\MQTTFormat.c</FilePath>
             </File>
             <File>
               <FileName>MQTTPacket.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\src\mqtt\MQTTPacket.c</FilePath>
+              <FilePath>.\src\mqtt\MQTTPacket.c</FilePath>
             </File>
             <File>
               <FileName>MQTTSerializePublish.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\src\mqtt\MQTTSerializePublish.c</FilePath>
+              <FilePath>.\src\mqtt\MQTTSerializePublish.c</FilePath>
             </File>
             <File>
               <FileName>MQTTSubscribeClient.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\src\mqtt\MQTTSubscribeClient.c</FilePath>
+              <FilePath>.\src\mqtt\MQTTSubscribeClient.c</FilePath>
             </File>
             <File>
               <FileName>MQTTSubscribeServer.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\src\mqtt\MQTTSubscribeServer.c</FilePath>
+              <FilePath>.\src\mqtt\MQTTSubscribeServer.c</FilePath>
             </File>
             <File>
               <FileName>MQTTUnsubscribeClient.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\src\mqtt\MQTTUnsubscribeClient.c</FilePath>
+              <FilePath>.\src\mqtt\MQTTUnsubscribeClient.c</FilePath>
             </File>
             <File>
               <FileName>MQTTUnsubscribeServer.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\src\mqtt\MQTTUnsubscribeServer.c</FilePath>
+              <FilePath>.\src\mqtt\MQTTUnsubscribeServer.c</FilePath>
+            </File>
+            <File>
+              <FileName>delay.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\system\delay.c</FilePath>
+            </File>
+            <File>
+              <FileName>malloc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\system\malloc.c</FilePath>
+            </File>
+            <File>
+              <FileName>sys.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\system\sys.c</FilePath>
+            </File>
+            <File>
+              <FileName>usart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\system\usart.c</FilePath>
+            </File>
+            <File>
+              <FileName>usmart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\USMART\usmart.c</FilePath>
+            </File>
+            <File>
+              <FileName>usmart_config.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\USMART\usmart_config.c</FilePath>
+            </File>
+            <File>
+              <FileName>usmart_str.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\USMART\usmart_str.c</FilePath>
+            </File>
+            <File>
+              <FileName>utils.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\app\utils.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -711,7 +721,7 @@
             <File>
               <FileName>test.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\test\test.c</FilePath>
+              <FilePath>.\test\test.c</FilePath>
             </File>
           </Files>
         </Group>

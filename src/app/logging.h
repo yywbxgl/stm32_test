@@ -10,7 +10,6 @@
 #include <stdlib.h>
 //#include <time.h>
 #include "rtc.h"
-//#include "usart.h"
 #ifdef __cplusplus
 extern "C"
 {
@@ -72,7 +71,7 @@ extern "C"
 
 
 #if LOG_LEVEL_VERBOSE >= LOG_LEVEL
-#   define LOG_VERBOSE(fmt,...) LOG_PRINT(TITLE_VERBOSE,fmt,##__VA_ARGS__)
+#   define LOG_VERBOSE(fmt,...) printf(fmt,##__VA_ARGS__)
 #else
 #   define LOG_VERBOSE(...) LOG_NOOP
 #endif

@@ -8,6 +8,7 @@
 #include "usart3.h"
 #include "timer.h"
 #include "logging.h"
+#include "utils.h"
 
 
 
@@ -61,6 +62,39 @@ u8 sim800c_send_cmd(u8 *cmd,u8 *ack,u16 waittime)
         while((USART2->SR&0X40)==0);//等待上一次数据发送完成  
         USART2->DR=(u32)cmd;
     }else u3_printf("%s\r\n",cmd);//发送命令
+
+    if(ack&&waittime)       //需要等待应答
+    {
+        while(--waittime)   //等待倒计时
+        {
+            delay_ms(10);
+            if(USART3_RX_STA&0X8000)//接收到期待的应答结果
+            {
+                if(sim800c_check_cmd(ack))break;//得到有效数据 
+                USART3_RX_STA=0;
+            } 
+        }
+        if(waittime==0)res=1; 
+    }
+    return res;
+}
+
+
+//SIM800C发送hex二进制数据mqtt消息
+//cmd:发送的命令字符串(不需要添加回车了),当cmd<0XFF的时候,发送数字(比如发送0X1A),大于的时候发送字符串.
+//ack:期待的应答结果,如果为空,则表示不需要等待应答
+//waittime:等待时间(单位:10ms)
+//返回值:0,发送成功(得到了期待的应答结果)
+//       1,发送失败
+u8 sim800c_send_hex(u8 *buf, u8 len, u8 *ack, u16 waittime)
+{
+
+    u8 res=0; 
+    USART3_RX_STA=0;
+
+    LOGD("send hex.");
+    PrintHex(buf, len);
+    u3_printf_hex(buf, len);//发送数据
 
     if(ack&&waittime)       //需要等待应答
     {
@@ -320,6 +354,114 @@ void sim800c_test(void)
 
 }
 
+
+//连接阿里云服务器
+u8 connect_to_server(u8 mode,u8* ipaddr,u8* port)
+{
+    u8 p[64] = {0};
+    u16 timex=6;
+    u8 connectsta=0;            //0,????;1,????;2,????; 
+
+    while(sim800c_send_cmd("AT","OK",100)) //检测是否应答AT指令 
+    {   
+        LOGE("no response. sim800c未回应AT指令.");
+        delay_ms(400);
+    }
+
+    while(sim800c_send_cmd("AT+CPIN?","OK",200))
+    {
+        LOGE("no response. sim800c未检测到SIM卡.");
+        delay_ms(400);
+    }
+
+    sim800c_send_cmd("ATE0","OK",200);
+
+    USART3_RX_STA=0;
+    while(sim800c_send_cmd("AT+CGSN","OK",200))
+    {
+        printf("no response. sim800c未返回序列号.");
+        delay_ms(400);
+    }
+    //p1=(u8*)strstr((const char*)(USART3_RX_BUF+2),"\r\n");
+    //p1[0]=0;//加入结束符 
+    LOGI("检测到序列号: %s", USART3_RX_BUF+2);
+    USART3_RX_STA=0;
+
+#if 0
+    if (sim800c_send_cmd("ATE0","OK",200));//不回显
+        printf("no response.sim800c未关闭回显.\r\n");
+
+    if(sim800c_send_cmd("AT+CGSN","OK",200))//查询SIM800C产品序列号
+    {
+        printf("no response. sim800c未返回序列号.\r\n");
+    }
+    else
+    {
+        p1=(u8*)strstr((const char*)(USART3_RX_BUF+2),"\r\n");
+        p1[0]=0;//加入结束符 
+        printf("序列号: %s\r\n", USART3_RX_BUF+2);
+        USART3_RX_STA=0;
+    }
+
+    if(sim800c_send_cmd("AT+CPIN?","OK",200))//检查SIM卡是否准备好
+    {
+        printf("no response. sim800c未返回本机号码.\r\n");
+    }
+
+    if(sim800c_send_cmd("AT+CSQ","+CSQ:",200))//查询信号质量
+    {
+        printf("no response. sim800c未返回信号质量\r\n");
+    }
+
+    if(sim800c_send_cmd("AT+CCLK?","+CCLK:",200))
+    {
+        printf("no response. sim800c未返回日期\r\n");
+    }
+#endif
+
+    //更新NTP时间
+    //ntp_update();
+
+    sim800c_send_cmd("AT+CIPCLOSE=1","CLOSE OK",100);   //关闭连接
+    sim800c_send_cmd("AT+CIPSHUT","SHUT OK",100);       //关闭移动场景 
+    if(sim800c_send_cmd("AT+CGCLASS=\"B\"","OK",1000))return 1;             //设置GPRS移动台类别为B,支持包交换和数据交换 
+    if(sim800c_send_cmd("AT+CGDCONT=1,\"IP\",\"CMNET\"","OK",1000))return 2;//设置PDP上下文,互联网接协议,接入点等信息
+    if(sim800c_send_cmd("AT+CGATT=1","OK",500))return 3;                    //附着GPRS业务
+    if(sim800c_send_cmd("AT+CIPCSGP=1,\"CMNET\"","OK",500))return 4;        //设置为GPRS连接模式
+    //if(sim800c_send_cmd(" AT+CIPMODE=1,\"CMNET\"","OK",500))printf("设置透传模式失败\r\n");        //设置为GPRS连接模式
+    if(sim800c_send_cmd("AT+CIPHEAD=1","OK",500))return 5;                  //设置接收数据显示IP头(方便判断数据来源)   
+    u3_printf("AT+CLDTMF=2,\"%s\"\r\n", ipaddr); 
+
+    USART3_RX_STA=0;
+    sprintf((char*)p,"AT+CIPSTART=\"TCP\",\"%s\",\"%s\"",ipaddr,port);
+    if(sim800c_send_cmd(p,"OK",500))return 6;     //发起连接
+
+    while (1)
+    {
+       if(connectsta==0&&timex)//连接还没建立的时候,每2秒查询一次CIPSTATUS.
+       {
+           sim800c_send_cmd("AT+CIPSTATUS","OK",500);  //查询连接状态
+           if(strstr((const char*)USART3_RX_BUF,"CLOSED"))connectsta=2;
+           if(strstr((const char*)USART3_RX_BUF,"CONNECT OK"))connectsta=1;
+           delay_ms(500);
+           timex --;
+       }
+       else if (connectsta == 1)
+       {
+            return 0; //连接建立成功
+       }
+       else if (connectsta == 2)
+       {
+           LOGI(" conncet return closed.");
+           return 7;
+       }
+       else
+       {
+           break;
+       }
+    }
+    return 7;
+}
 
 
 
