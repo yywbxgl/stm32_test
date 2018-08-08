@@ -1,6 +1,6 @@
 
-#ifndef _MAIN_INCLUDED_
-#define _MAIN_INCLUDED_
+#ifndef _FM1702_INCLUDED_
+#define _FM1702_INCLUDED_
 
 /*常量定义*/
 #define FALSE	0

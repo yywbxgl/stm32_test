@@ -379,7 +379,7 @@ u8 connect_to_server(u8 mode,u8* ipaddr,u8* port)
     USART3_RX_STA=0;
     while(sim800c_send_cmd("AT+CGSN","OK",200))
     {
-        printf("no response. sim800c未返回序列号.");
+        LOGE("no response. sim800c未返回序列号.");
         delay_ms(400);
     }
     //p1=(u8*)strstr((const char*)(USART3_RX_BUF+2),"\r\n");
@@ -387,9 +387,13 @@ u8 connect_to_server(u8 mode,u8* ipaddr,u8* port)
     LOGI("检测到序列号: %s", USART3_RX_BUF+2);
     USART3_RX_STA=0;
 
+    if(sim800c_send_cmd("AT+CSQ","+CSQ:",200))//查询信号质量
+    {
+        LOGE("no response. sim800c未返回信号质量\r\n");
+    }
+    
+
 #if 0
-    if (sim800c_send_cmd("ATE0","OK",200));//不回显
-        printf("no response.sim800c未关闭回显.\r\n");
 
     if(sim800c_send_cmd("AT+CGSN","OK",200))//查询SIM800C产品序列号
     {
@@ -406,11 +410,6 @@ u8 connect_to_server(u8 mode,u8* ipaddr,u8* port)
     if(sim800c_send_cmd("AT+CPIN?","OK",200))//检查SIM卡是否准备好
     {
         printf("no response. sim800c未返回本机号码.\r\n");
-    }
-
-    if(sim800c_send_cmd("AT+CSQ","+CSQ:",200))//查询信号质量
-    {
-        printf("no response. sim800c未返回信号质量\r\n");
     }
 
     if(sim800c_send_cmd("AT+CCLK?","+CCLK:",200))

@@ -16,9 +16,12 @@
 #include "malloc.h"
 #include "logging.h"
 #include "utils.h"
+#include "commands.h"
 #include <string.h>
+#include <jansson.h>
 
-u8 mqtt_msg[200]={0}; //mqtt消息包
+
+u8 mqtt_msg[300]={0}; //mqtt消息包
 u8 send_cmd[20]= {0};
 
 int main(void)
@@ -38,7 +41,7 @@ int main(void)
     RTC_Init();             //RTC初始化
     DCF_Init();             //电磁阀初始化
     DPinit();               //数码管初始化
-
+    
     LOGI("hardware init finish.");
 
     //DCF_Set();
@@ -56,7 +59,7 @@ int main(void)
     //与服务器建立握手
     while(connect_to_server(mode, ipbuf, (u8*)port))
     {
-        delay_ms(1000);
+        delay_ms(1000);     
     }
 
     //发起mqtt_connect请求
