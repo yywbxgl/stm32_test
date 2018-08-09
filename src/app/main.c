@@ -46,7 +46,8 @@ int main(void)
 
     //DCF_Set();
 
-    //fm1702_test();
+    while(1)
+        fm1702_test();
 
     //usart_test();
  

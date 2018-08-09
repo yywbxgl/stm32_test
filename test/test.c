@@ -7,6 +7,18 @@
 #include "usmart.h"
 #include "fm1702.h"
 #include "rtc.h"
+#include "logging.h"
+#include "utils.h"
+#include "commands.h"
+
+
+//extern char* g_card_id;
+
+extern u16 g_ICCard_Value;
+extern u8 ic_on_flag = 0;
+
+
+
 /*
 //LED测试接口
 void led_test(void)
@@ -80,51 +92,77 @@ void usart_test(void)
 }
 
 
-
-
 //IC卡读写测试
 void fm1702_test(void)
 {
     unsigned char status, try;
     unsigned char buf[16], DefaultKey[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; 
-
     Init_FM1702();
-
+    LOGD("Init_FM1702 finish");
     try = 5;
-    while(--try)
+    while(try--)
     {
+        delay_ms(500);
         
         status = Request(RF_CMD_REQUEST_ALL);       //寻卡
-        printf("fm1702_test request find card. ret=%d\r\n", status);
-        if(status != FM1702_OK)    continue;
+        if(status != FM1702_OK)
+        {
+            LOGD("未检测到卡片");
+            continue;
+        }
 
         status = AntiColl();                        //冲突检测
-        printf("fm1702_test AntiColl. ret=%d\r\n", status);
-        if(status != FM1702_OK)    continue;
+        if(status != FM1702_OK)
+        {
+            LOGE("卡片冲突");
+            continue;
+        }
 
         status=Select_Card();                       //选卡
-        printf("fm1702_test Select_Card. ret=%d\r\n", status);
-        if(status != FM1702_OK)    continue;
+        if(status != FM1702_OK)
+        {
+            LOGE("选择卡片失败");
+            continue;
+        }
 
         status = Load_keyE2_CPY(DefaultKey);          //加载密码
-        printf("fm1702_test Load_keyE2_CPY. ret=%d\r\n", status);
-        if(status != TRUE)         continue;
+        if(status != TRUE)
+        {
+            LOGE("加载密码失败");
+            continue;
+        }
 
-        status = Authentication(UID, 1, RF_CMD_AUTH_LA);//验证1扇区keyA
-        printf("fm1702_test Authentication. ret=%d\r\n", status);
-        if(status != FM1702_OK)    continue;
+        status = Authentication(UID, 7, RF_CMD_AUTH_LA);//验证1扇区keyA
+        if(status != FM1702_OK)
+        {
+            LOGE("验证扇区失败");
+            continue;
+        }
 
-        status=MIF_READ(buf,4);             //读卡，读取1扇区0块数据到buffer[0]-buffer[15]
-        printf("fm1702_test MIF_READ. ret=%d\r\n", status);
-				printf("READ out is %x%x%x%x\r\n", buf[0],buf[1],buf[2],buf[3]);
-				buf[0]+=1;
-        status=MIF_Write(buf,4);       //写卡，将buffer[0]-buffer[15]写入1扇区0块
+        char card_id[12] ={0};
+        sprintf(card_id, "%02x%02x%02x%02x", UID[0], UID[1], UID[2], UID[3]);
+        LOGI("卡片唯一号：%s", card_id);
+
+        status=MIF_READ(buf,28);             //读卡，读取7扇区0块数据到buffer[0]-buffer[15]
+        if(status != FM1702_OK)
+        {
+            LOGE("读卡数据失败");
+            continue;
+        }
+        else
+        {
+            ic_on_flag = 1;
+            g_ICCard_Value = (buf[0]<<8)|buf[1];
+            LOGI("读卡数据成功，余额= %d\r\n", g_ICCard_Value);
+        }
+
+        buf[1] -= 1;
+        status=MIF_Write(buf,28);       //写卡，将buffer[0]-buffer[15]写入1扇区0块
         if(status == FM1702_OK)
         {
             //读写成功，点亮LED
-            printf("fm1702_test, read and write success.\r\n");
+            LOGI("写数据成功\r\n");
         }
-        
 
     }
 }

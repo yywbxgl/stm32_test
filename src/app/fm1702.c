@@ -2,6 +2,8 @@
 #include "stm32f10x_rcc.h"
 #include "fm1702.h"
 #include "usart.h"
+#include "delay.h"
+
 
 #define uchar unsigned char
 
@@ -11,7 +13,7 @@ uchar     	tagtype[2];	        /* 卡片标识字符 */
 /* FM1702变量定义 */
 uchar     	buf[10];            /* FM1702命令发送接收缓冲区 */
 uchar     	UID[5];             /* 序列号 */
-uchar       Secnr;			        /* 扇区号 */
+uchar       Secnr;			    /* 扇区号 */
 
 void delay(unsigned int dlength)
 { 
@@ -343,9 +345,6 @@ void Init_FM1702(void)
 
     GPIO_InitTypeDef  GPIO_InitStructure;
 
-	
-    printf("Init_FM1702 init gpio start.\r\n");
-	
     /* Enable the GPIO Clock */
     RCC_APB2PeriphClockCmd(MF522_RST_CLK, ENABLE);
 
@@ -396,28 +395,21 @@ void Init_FM1702(void)
 
     GPIO_Init(MF522_NSS_PORT, &GPIO_InitStructure);
 
-  //  printf("Init_FM1702 init gpio finish.\r\n");
-    delay(10000);
-    
+    delay_ms(1000);
 
-  //  printf("Init_FM1702 rest begin.\r\n");
     RST_H;  //复位
     for (i = 0; i < 0x3fff; i++);
     RST_L;
     for (i = 0; i < 0x3fff; i++);
     SCK_L;	 
 
-  //  printf("Init_FM1702 rest end.\r\n");
-
     temp = read_reg(0x05);
-    printf("Init_FM1702 read_reg(0x05) ret=%x.\r\n", temp);
     if(temp == 0x60)
     {
         FM1702_Bus_Sel();		 	//总线选择
     }
 
-    delay(10000);	
-    printf("Init_FM1702 end.\r\n");
+    delay_ms(1000);	
 }
 
 /****************************************************************/
@@ -537,7 +529,7 @@ uchar Load_keyE2_CPY(uchar *uncoded_keys)
   uchar temp;
   uchar coded_keys[13];
     
-  M500HostCodeKey(uncoded_keys, coded_keys);
+    M500HostCodeKey(uncoded_keys, coded_keys);
 	temp = Command_Send(12, coded_keys, LoadKey);
 	temp = read_reg(0x0A) & 0x40;
 	if (temp == 0x40)
