@@ -97,8 +97,6 @@ void fm1702_test(void)
 {
     unsigned char status, try;
     unsigned char buf[16], DefaultKey[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; 
-    Init_FM1702();
-    LOGD("Init_FM1702 finish");
     try = 5;
     while(try--)
     {
@@ -160,8 +158,15 @@ void fm1702_test(void)
         status=MIF_Write(buf,28);       //写卡，将buffer[0]-buffer[15]写入1扇区0块
         if(status == FM1702_OK)
         {
-            //读写成功，点亮LED
             LOGI("写数据成功\r\n");
+        }
+
+        delay_ms(500);
+        buf[1] -= 1;
+        status=MIF_Write(buf,28);       //写卡，将buffer[0]-buffer[15]写入1扇区0块
+        if(status == FM1702_OK)
+        {
+            LOGI("写数据成功2\r\n");
         }
 
     }

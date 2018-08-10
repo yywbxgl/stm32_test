@@ -19,6 +19,7 @@
 #include "message.h"
 #include <string.h>
 #include <jansson.h>
+#include "app.h"
 
 
 u8 mqtt_msg[300]={0}; //mqtt消息包
@@ -26,29 +27,32 @@ u8 send_cmd[20]= {0};
 
 int main(void)
 {
-    u8 t = 0;
-    u8 error_count = 5;
-    u8 ipbuf[16]= HOST_IP;//IP缓存
-    const u8 *port= HOST_PORT;  //端口固定为8086,当你的电脑8086端口被其他程序占用的时候,请修改为其他空闲端口
-    u8 mode= 0;              //0,TCP连接;1,UDP连接
-    u16 len;
 
-    delay_init();           //延时函数初始化   
-    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2); //设置NVIC中断分组2:2位抢占优先级，2位响应优先级
+    delay_init();           //延时函数初始化
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);//设置NVIC中断分组2:2位抢占优先级，2位响应优先级
     uart_init(115200);      //调试打印串口，初始化为115200
     usart3_init(115200);    //初始化串口3,与SIM800C通信
     usmart_dev.init(SystemCoreClock/1000000);   //串口调试组件USMART初始化
     RTC_Init();             //RTC初始化
+    Init_FM1702();          //fm1702初始化
     DCF_Init();             //电磁阀初始化
     DPinit();               //数码管初始化
-    
     LOGI("hardware init finish.");
 
-    //DCF_Set();
+    SdgOffAll();            //关闭数码管显示，等待卡片
 
     while(1)
     {
-        fm1702_test();
+        //fm1702_test();
+
+        if (g_state == WAIT_IC){
+            scan_for_card();
+        }
+        else if (g_state == ON_IC){
+            card_runing();
+        }
+
+        delay_ms(500);
     }
 
 
@@ -60,7 +64,12 @@ int main(void)
 
     //fm1702_test();
 
+
     //与服务器建立握手
+    u8 ipbuf[16]= HOST_IP;//IP缓存
+    const u8 *port= HOST_PORT;  //端口固定为8086,当你的电脑8086端口被其他程序占用的时候,请修改为其他空闲端口
+    u8 mode= 0;              //0,TCP连接;1,UDP连接
+    u16 len;
     while(connect_to_server(mode, ipbuf, (u8*)port))
     {
         delay_ms(1000);
@@ -97,7 +106,8 @@ int main(void)
 
     //开启定时器，每间隔多少发一个ping包
     //TIM3_Int_Init(5000,56000);
-
+    u8 error_count = 5;
+    u8 t = 0;
     while(1)
     {
         if(t%25 == 0)

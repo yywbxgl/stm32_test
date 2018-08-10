@@ -18,6 +18,7 @@ u8 g_logRate = 1;
 //设备当前业务状态初始化
 char g_card_id[24] = "no card";
 u16 g_ICCard_Value = 0;
+u8 g_state = WAIT_IC;
 
 
 

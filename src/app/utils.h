@@ -50,8 +50,15 @@ extern u8 g_logRate ;
 
 
 //设备当前业务状态
+extern u8   g_state;             //设备当前状态
 extern char g_card_id[24];       //当前卡片ID
-extern u16 g_ICCard_Value;       
+extern u16 g_ICCard_Value;       //卡片余额
+
+
+enum{
+    WAIT_IC,   //等待IC卡
+    ON_IC,     //检测到IC卡
+};
 
 
 //打印BUF的二进制数据，用于调试

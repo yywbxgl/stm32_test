@@ -341,7 +341,7 @@ void Init_FM1702(void)
 {
 
     uint    i;
-    uchar temp;
+    //uchar temp;
 
     GPIO_InitTypeDef  GPIO_InitStructure;
 
@@ -395,7 +395,6 @@ void Init_FM1702(void)
 
     GPIO_Init(MF522_NSS_PORT, &GPIO_InitStructure);
 
-    delay_ms(1000);
 
     RST_H;  //复位
     for (i = 0; i < 0x3fff; i++);
@@ -403,13 +402,13 @@ void Init_FM1702(void)
     for (i = 0; i < 0x3fff; i++);
     SCK_L;	 
 
-    temp = read_reg(0x05);
-    if(temp == 0x60)
+    //temp = read_reg(0x05);
+    //if(temp == 0x60)
     {
         FM1702_Bus_Sel();		 	//总线选择
     }
 
-    delay_ms(1000);	
+
 }
 
 /****************************************************************/

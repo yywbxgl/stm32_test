@@ -3,11 +3,10 @@
 #include "usart.h"
 #include "rtc.h" 
 #include "digitron.h"
+#include "utils.h"
 
 
 _calendar_obj calendar;//时钟结构体 
-
-u8 disnum[8]={0,0,5,7,2,4,6,8};//数码管显示内容
 
 static void RTC_NVIC_Config(void)
 {
@@ -70,21 +69,33 @@ u8 RTC_Init(void)
 //每秒触发一次  
 //extern u16 tcnt; 
 void RTC_IRQHandler(void)
-{        
+{
+    static u8 cnt = 0;   //扣费间隔计数
     if (RTC_GetITStatus(RTC_IT_SEC) != RESET)//秒钟中断
-    {                           
+    {
         RTC_Get();//更新时间
-        //printf("Now Time:%d-%d-%d %d:%d:%d\n",calendar.w_year,calendar.w_month,calendar.w_date,calendar.hour,calendar.min,calendar.sec);//输出闹铃时间
-        //数码管显示是时间
-        disnum[7] = calendar.sec%10;
-        disnum[6] = calendar.sec/10;
-        disnum[5] = calendar.min%10;
-        disnum[4] = calendar.min/10;
-        disnum[3] = calendar.hour%10;
-        disnum[2] = calendar.hour/10;
-        disnum[1] = calendar.w_date%10;
-        disnum[0] = calendar.w_date/10;
-        display(disnum);
+
+        g_Digitron[7] = g_ICCard_Value%10;
+        g_Digitron[6] = (g_ICCard_Value/10)%10;
+        g_Digitron[5] = (g_ICCard_Value/100)%10;
+        g_Digitron[4] = (g_ICCard_Value/1000)%10;
+        g_Digitron[3] = g_ICCard_Value/10000;
+        g_Digitron[2] = 10;  //不进行显示
+        g_Digitron[1] = 10;
+        g_Digitron[0] = 10;
+
+        //显示温度
+        cnt ++;
+        if(cnt >= g_chargRate)
+        {
+            cnt = 0 ;
+            if (g_state == ON_IC)
+            {
+                g_ICCard_Value = g_ICCard_Value - g_moneyRate;
+                //数码管显示改变
+            }
+
+        }
     }
     if(RTC_GetITStatus(RTC_IT_ALR)!= RESET)//闹钟中断
     {
