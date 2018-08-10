@@ -9,7 +9,7 @@
 #include "rtc.h"
 #include "logging.h"
 #include "utils.h"
-#include "commands.h"
+#include "message.h"
 
 
 //extern char* g_card_id;

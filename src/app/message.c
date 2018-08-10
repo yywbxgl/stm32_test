@@ -1,4 +1,4 @@
-#include "commands.h"
+#include "message.h"
 #include "utils.h"
 #include <jansson.h>
 #include <string.h>

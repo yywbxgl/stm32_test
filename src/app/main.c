@@ -16,7 +16,7 @@
 #include "malloc.h"
 #include "logging.h"
 #include "utils.h"
-#include "commands.h"
+#include "message.h"
 #include <string.h>
 #include <jansson.h>
 
