@@ -47,7 +47,10 @@ int main(void)
     //DCF_Set();
 
     while(1)
+    {
         fm1702_test();
+    }
+
 
     //usart_test();
  
@@ -60,7 +63,7 @@ int main(void)
     //与服务器建立握手
     while(connect_to_server(mode, ipbuf, (u8*)port))
     {
-        delay_ms(1000);     
+        delay_ms(1000);
     }
 
     //发起mqtt_connect请求
