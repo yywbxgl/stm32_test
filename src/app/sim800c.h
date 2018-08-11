@@ -18,8 +18,6 @@ u8 sim800c_gsminfo_show(void);	         //显示GSM模块信息
 void ntp_update(void);               //网络同步时间
 void sim800c_test(void);			 //sim800c主测试函数
 
-u8 connect_to_server(u8 mode,u8* ipaddr,u8* port); //连接阿里云服务器
-
 #endif
 
 

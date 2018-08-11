@@ -17,5 +17,14 @@ u8 scan_for_card(void);
 //定时扣费在RTC中断中执行，扣除全局变量
 u8 card_runing(void);
 
+//连接阿里云服务器
+u8 connect_to_server(void); 
+
+//订阅mqtt主题
+u8 subscribe_mqtt(void);
+
+//发送保活信息
+u8 send_keep_alive_mesaage(void);
+
 
 #endif

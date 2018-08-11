@@ -22,7 +22,7 @@ void create_keep_alive_message(u8 *outbuf, u16 len)
     json_object_set_new(param, M_LOGRATE, json_integer(g_logRate));
 
 
-    json_object_set_new(message, M_TRADE, json_string("0"));
+    json_object_set_new(message, M_TRADE, json_string("1"));
     json_object_set_new(message, M_DATA, param);
     json_object_set_new(message, M_VERSION, json_string(M_VERSION_VALUE));
     json_object_set_new(message, M_CODE, json_integer(1));

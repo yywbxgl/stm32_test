@@ -7,7 +7,7 @@ char g_device_code[24] = { 0};
 //指令1  字段值初始化
 u8 g_disable = 0;
 u8 g_abnormal = 0;
-u8 g_heart = 5;
+u8 g_heart = 10;
 u8 g_offLine = 1;
 char g_pwd[24] = "test111111111";
 u8 g_chargRate = 1;
@@ -18,7 +18,7 @@ u8 g_logRate = 1;
 //设备当前业务状态初始化
 char g_card_id[24] = "no card";
 u16 g_ICCard_Value = 0;
-u8 g_state = WAIT_IC;
+u8 g_state = INIT;
 
 
 

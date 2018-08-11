@@ -19,7 +19,7 @@ u8  USART3_TX_BUF[USART3_MAX_SEND_LEN]; 			//·¢ËÍ»º³å,×î´óUSART3_MAX_SEND_LEN×Ö½
 //½ÓÊÕµ½µÄÊý¾Ý×´Ì¬
 //[15]:0,Ã»ÓÐ½ÓÊÕµ½Êý¾Ý;1,½ÓÊÕµ½ÁËÒ»ÅúÊý¾Ý.
 //[14:0]:½ÓÊÕµ½µÄÊý¾Ý³¤¶È
-vu16 USART3_RX_STA=0;   	
+vu16 USART3_RX_STA=0;
 
 
 void USART2_IRQHandler(void)
@@ -95,7 +95,7 @@ void usart3_init(u32 bound)
 	NVIC_Init(&NVIC_InitStructure);	//¸ù¾ÝÖ¸¶¨µÄ²ÎÊý³õÊ¼»¯VIC¼Ä´æÆ÷
 	
 	
-	TIM7_Int_Init(99,7199);		//10msÖÐ¶Ï
+	TIM7_Int_Init(500,5600);	//10msÖÐ¶Ï
 	USART3_RX_STA=0;		    //ÇåÁã
 	TIM_Cmd(TIM7,DISABLE);		//¹Ø±Õ¶¨Ê±Æ÷7
 

@@ -11,10 +11,10 @@ extern u8 g_Digitron[8];
 
 void DPinit(void);	//初始化
 
-void display(u8 disnum[8]);
+//打开数码管显示
+void setOnFlag(void);
 
 //关闭数码管显示
-void SdgOffAll(void);
-
+void setOffFlag(void);
 
 #endif

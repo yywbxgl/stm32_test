@@ -714,9 +714,14 @@
               <FilePath>.\src\app\utils.c</FilePath>
             </File>
             <File>
-              <FileName>commands.c</FileName>
+              <FileName>message.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\src\app\commands.c</FilePath>
+              <FilePath>.\src\app\message.c</FilePath>
+            </File>
+            <File>
+              <FileName>app.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\app\app.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -2,6 +2,10 @@
 #define __SYS_H	
 #include "stm32f10x.h"
 
+#define FALSE	0
+#define TRUE	1
+
+
 //0,不支持ucos
 //1,支持ucos
 #define SYSTEM_SUPPORT_OS		0		//定义系统文件夹是否支持UCOS

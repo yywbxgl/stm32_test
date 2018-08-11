@@ -2,12 +2,9 @@
 #include "delay.h"
 #include "timer.h"
 #include "usart.h"
-#include "key.h"
-#include "beep.h"
 #include "usmart.h"
 #include "rtc.h"
 #include "usart3.h"
-#include "sim800c.h"
 #include "fm1702.h" 
 #include "test.h"
 #include "dcf.h"
@@ -16,14 +13,12 @@
 #include "malloc.h"
 #include "logging.h"
 #include "utils.h"
-#include "message.h"
 #include <string.h>
 #include <jansson.h>
 #include "app.h"
 
 
-u8 mqtt_msg[300]={0}; //mqtt消息包
-u8 send_cmd[20]= {0};
+
 
 int main(void)
 {
@@ -38,24 +33,7 @@ int main(void)
     DCF_Init();             //电磁阀初始化
     DPinit();               //数码管初始化
     LOGI("hardware init finish.");
-
-    SdgOffAll();            //关闭数码管显示，等待卡片
-
-    while(1)
-    {
-        //fm1702_test();
-
-        if (g_state == WAIT_IC){
-            scan_for_card();
-        }
-        else if (g_state == ON_IC){
-            card_runing();
-        }
-
-        delay_ms(500);
-    }
-
-
+    
     //usart_test();
  
     //rtc_test();
@@ -64,104 +42,91 @@ int main(void)
 
     //fm1702_test();
 
-
-    //与服务器建立握手
-    u8 ipbuf[16]= HOST_IP;//IP缓存
-    const u8 *port= HOST_PORT;  //端口固定为8086,当你的电脑8086端口被其他程序占用的时候,请修改为其他空闲端口
-    u8 mode= 0;              //0,TCP连接;1,UDP连接
-    u16 len;
-    while(connect_to_server(mode, ipbuf, (u8*)port))
-    {
-        delay_ms(1000);
-    }
-
-    //发起mqtt_connect请求
-    len=mqtt_connect_message(mqtt_msg, CLIENTID , USRNAME, PASSWD);//id,用户名和密码
-    //LOGD("send len = %d\r\n", len);
-    LOGI("mqtt connect... \r\n");
-    PrintHex(mqtt_msg,len);
-    sprintf((char*)send_cmd, "AT+CIPSEND=%d", len);//接收到的字节数
-    if(sim800c_send_cmd(send_cmd,">",200)==0)//发送数据
-    {
-        u3_printf_hex(mqtt_msg, len);
-        delay_ms(1000);                      //必须加延时
-        //sim800c_send_cmd((u8*)0X1A,0,0);   //CTRL+Z,结束数据发送,启动一次传输
-        delay_ms(1000);                      //必须加延时
-    }
-
-
-    len=mqtt_subscribe_message(mqtt_msg,TOPIC,1,1);//订阅test主题
-    //printf("send len = %d\r\n", len);
-    LOGI("mqtt_subscribe... \r\n");
-    PrintHex(mqtt_msg,len);
-    sprintf((char*)send_cmd, "AT+CIPSEND=%d", len);//接收到的字节数
-    if(sim800c_send_cmd(send_cmd,">",200)==0)//发送数据
-    {
-        u3_printf_hex(mqtt_msg, len);
-        delay_ms(1000);                 //必须加延时
-        //sim800c_send_cmd((u8*)0X1A,0,0);    //CTRL+Z,结束数据发送,启动一次传输
-        delay_ms(1000);               //必须加延时
-    }
-
-
-    //开启定时器，每间隔多少发一个ping包
-    //TIM3_Int_Init(5000,56000);
-    u8 error_count = 5;
-    u8 t = 0;
+    u8 time_t=0;
     while(1)
     {
-        if(t%25 == 0)
+        if (g_state == INIT)
         {
-            len=mqtt_publish_message(mqtt_msg, TOPIC, "device_sun_smile", 0);
-            //LOGI("send len = %d\r\n", len);
-            sprintf((char*)send_cmd, "AT+CIPSEND=%d", len);//接收到的字节数
-            if(sim800c_send_cmd(send_cmd,">",200)==0)//发送数据
+            //打开数码数码管显示当前设备状态
+            memset(g_Digitron, INIT, sizeof(g_Digitron));
+            setOnFlag();
+            
+            if (connect_to_server() == TRUE){
+                g_state = TCP_OK;
+            }
+        }
+        else if (g_state == TCP_OK)
+        {
+            //打开数码数码管显示当前设备状态
+            memset(g_Digitron, TCP_OK, sizeof(g_Digitron));
+            setOnFlag();
+            
+            if (subscribe_mqtt() == TRUE){
+                g_state = MQTT_OK;
+            }else if ( subscribe_mqtt() == FALSE){
+                g_state = INIT; 
+            }
+        }
+        else if(g_state == MQTT_OK)
+        {
+            //打开数码数码管显示当前设备状态
+            memset(g_Digitron, MQTT_OK, sizeof(g_Digitron));
+            setOnFlag();
+
+            USART3_RX_STA=0;
+
+            if (send_keep_alive_mesaage() == TRUE){
+                g_state = WAIT_IC;
+            }
+            else{
+                g_state = TCP_OK;
+            }
+        }
+        else if(g_state == WAIT_IC){
+            //关闭数码数码管，等待IC卡、
+            setOffFlag();
+
+            if (scan_for_card() == TRUE){
+                g_state = ON_IC;
+            }
+
+            USART3_RX_STA=0;
+            //每隔g_heart发送一个心跳
+            if (time_t % g_heart == 0)
             {
-                LOGI("mqtt_publish...");
-                //PrintHex(mqtt_msg,len);
-                //u3_printf_hex(mqtt_msg, len);
-                if (sim800c_send_hex(mqtt_msg, len, "SEND OK", 200)==1)
-                {
-                    error_count--;
-                    //重新连接服务器
+                if (send_keep_alive_mesaage() == FALSE){
+                    g_state = TCP_OK;
                 }
+            }
+
+            if(USART3_RX_STA&0X8000)        //接收到一次数据了
+            {
+                USART3_RX_BUF[USART3_RX_STA&0X7FFF]=0;  //添加结束符
+                LOGI("recv data[%d]", USART3_RX_STA&0X7FFF);//接收到的字节数
+                PrintHex(USART3_RX_BUF, USART3_RX_STA&0X7FFF);
                 USART3_RX_STA=0;
-                // delay_ms(1000);                      //必须加延时
-                // sim800c_send_cmd((u8*)0X1A,0,0);    //CTRL+Z,结束数据发送,启动一次传输
+            }
+        }
+        else if (g_state == ON_IC){
+            //打开数码管，显示卡内余额
+            setOnFlag();
+            if (card_runing() == FALSE)
+            {
+                //结束前发送一个结束信令
+                LOGI("发送结束信令");
+                g_state = WAIT_IC;
+            }
+
+            //每隔g_logRate发送一消费信息
+            if (time_t % g_logRate == 0)
+            {
+                LOGI("发送扣费信令");
             }
         }
 
-        if(USART3_RX_STA&0X8000)        //接收到一次数据了
-        {
-           USART3_RX_BUF[USART3_RX_STA&0X7FFF]=0;  //添加结束符               
-           if(strstr((const char*)USART3_RX_BUF,"\r\n"))//接收到TCP/UDP数据
-           {
-                LOGI("recv data:%s", (const char*)USART3_RX_BUF);//接收到的字节数
-           }
-           USART3_RX_STA=0;
-        }
-        
-        delay_ms(200);
-        t++;
+        delay_ms(500);
+        time_t++;
     }
-
-#if 0
-    while(1)
-    {
-        if(USART3_RX_STA&0X8000)        //接收到一次数据了
-        {
-           USART3_RX_BUF[USART3_RX_STA&0X7FFF]=0;  //添加结束符               
-           if( strstr((const char*)USART3_RX_BUF,"\r\n"))//接收到TCP/UDP数据
-           {
-                LOGI("recv data:%s", (const char*)USART3_RX_BUF);//接收到的字节数
-           }
-           USART3_RX_STA=0;
-        }
-        delay_ms(400);
-
-    }
-
-#endif
 
 
 

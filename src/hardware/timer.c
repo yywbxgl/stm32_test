@@ -54,7 +54,7 @@ void TIM3_IRQHandler(void)   //TIM3中断
         u8 mqtt_msg[200]={0}; //mqtt消息包
         u8 send_cmd[20]= {0};
         LOGI("mqtt publish... \r\n");
-        len=mqtt_publish_message(mqtt_msg, TOPIC, "device_sun_smile", 0);
+        len=mqtt_publish_message(mqtt_msg, TOPIC_PUB, "device_sun_smile", 0);
         //LOGI("send len = %d\r\n", len);
         sprintf((char*)send_cmd, "AT+CIPSEND=%d", len);//接收到的字节数
         if(sim800c_send_cmd(send_cmd,">",200)==0)//发送数据

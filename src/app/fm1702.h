@@ -3,8 +3,6 @@
 #define _FM1702_INCLUDED_
 
 /*常量定义*/
-#define FALSE	0
-#define TRUE	1
 
 #define OSC_FREQ                11059200L
 

@@ -5,10 +5,8 @@ u8 DgNum;   //4? 0~3
 u8 g_Digitron[8]={8,8,8,8,8,8,8,8};//8
 u32 NumTab[]={0xc0,0xf9,0xa4,0xb0,0x99,0x92,0x82,0xf8,0x80,0x90,0xff};   //第十个值位为空
 
-u8 SecFlag1s;   //???
-u16 SecCount1s ;        //???
-/*00?????*/
-//????
+u8 on_flag = 1;
+
 void delay_c()
 {
     u8 d_r_count2;
@@ -23,6 +21,19 @@ void SdgOffAll()
     GPIO_SetBits(GPIOC,GPIO_Pin_11);
     GPIO_SetBits(GPIOC,GPIO_Pin_10);
 }
+
+
+void setOnFlag(void)
+{
+    on_flag = 1;
+}
+
+//关闭数码管显示
+void setOffFlag(void)
+{
+    on_flag = 0;
+}
+
 
 void SdgOnSel()
 {
@@ -51,8 +62,6 @@ void Serial_write()
     data_show   |=  NumTab[g_Digitron[DgNum+4]];
     if(DgNum == 1) 
         data_show &= 0xff7f; //显示小数点
-    if(DgNum == 2) 
-        data_show |= 0xff00; //第3位不显示
 
     SdgOffAll();
 
@@ -66,7 +75,7 @@ void Serial_write()
         data_show=data_show<<1;
         delay_c();
         GPIO_SetBits(GPIOB,GPIO_Pin_4);
-        delay_c();  
+        delay_c();
     }
     
     GPIO_ResetBits(GPIOB,GPIO_Pin_4);          //clk=0;
@@ -79,8 +88,8 @@ void tim2_init()
     NVIC_InitTypeDef NVIC_InitStructure;
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2,ENABLE);
     /* Time base configuration */
-    TIM_TimeBaseStructure.TIM_Period = 200; //50      0.5ms
-    TIM_TimeBaseStructure.TIM_Prescaler = 560;
+    TIM_TimeBaseStructure.TIM_Period = 10; //1ms间隔 1Khz频率
+    TIM_TimeBaseStructure.TIM_Prescaler = 5600;
     TIM_TimeBaseStructure.TIM_ClockDivision = 0;
     TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
     TIM_TimeBaseInit(TIM2,&TIM_TimeBaseStructure);
@@ -104,14 +113,10 @@ void TIM2_IRQHandler()      //T=0.5ms
         DgNum++;
         if(DgNum>3)
             DgNum=0;
-        Serial_write();
-
-        SecCount1s++;
-        if(SecCount1s>333)
-        {
-            SecCount1s=0;
-            SecFlag1s=1;
-        }
+        if (on_flag)
+            Serial_write();
+        else
+            SdgOffAll();
     }
 }
 

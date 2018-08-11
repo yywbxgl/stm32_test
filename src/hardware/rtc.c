@@ -75,14 +75,17 @@ void RTC_IRQHandler(void)
     {
         RTC_Get();//更新时间
 
-        g_Digitron[7] = g_ICCard_Value%10;
-        g_Digitron[6] = (g_ICCard_Value/10)%10;
-        g_Digitron[5] = (g_ICCard_Value/100)%10;
-        g_Digitron[4] = (g_ICCard_Value/1000)%10;
-        g_Digitron[3] = g_ICCard_Value/10000;
-        g_Digitron[2] = 10;  //不进行显示
-        g_Digitron[1] = 10;
-        g_Digitron[0] = 10;
+        if (g_state == ON_IC){
+            g_Digitron[7] = g_ICCard_Value%10;
+            g_Digitron[6] = (g_ICCard_Value/10)%10;
+            g_Digitron[5] = (g_ICCard_Value/100)%10;
+            g_Digitron[4] = (g_ICCard_Value/1000)%10;
+            g_Digitron[3] = g_ICCard_Value/10000;
+            g_Digitron[2] = 10;  //不进行显示
+            g_Digitron[1] = 10;
+            g_Digitron[0] = 10;
+        }
+        
 
         //显示温度
         cnt ++;
@@ -91,11 +94,11 @@ void RTC_IRQHandler(void)
             cnt = 0 ;
             if (g_state == ON_IC)
             {
+                //按频率进行指定扣费
                 g_ICCard_Value = g_ICCard_Value - g_moneyRate;
-                //数码管显示改变
             }
-
         }
+
     }
     if(RTC_GetITStatus(RTC_IT_ALR)!= RESET)//闹钟中断
     {

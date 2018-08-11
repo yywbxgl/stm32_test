@@ -5,14 +5,19 @@
 
 
 //连接代理服务器配置
-//#define HOST_IP "124.90.130.2"
-//#define HOST_PORT "8086"
-#define HOST_IP "114.215.73.18"                     //mqtt代理服务器
-#define HOST_PORT "1883"                            //mqtt代理服务器端口
+#define HOST_IP "101.67.134.148"
+#define HOST_PORT "8086"
+#define CONNECT_MODE 0                              //0-TCP连接;1-UDP连接
+//#define HOST_IP "114.215.73.18"                     //mqtt代理服务器
+//#define HOST_PORT "1883"                            //mqtt代理服务器端口
 #define CLIENTID "GID_water_test@@@TEST00003"
 #define USRNAME "LTAIwfxXisNo3pDh"                  //usr
 #define PASSWD "kqfxXvRTsAnQJHSbbDkj1B0iXfk="       //计算后的摘要
-#define TOPIC "water_device_to_server_test"         //订阅主题
+#define TOPIC_PUB "water_device_to_server_test"     //发布消息主题
+#define TOPIC_SUB "water_server_to_device_test"     //订阅消息主题
+
+extern char g_device_code[24];
+
 
 
 //公共部分字段
@@ -38,6 +43,7 @@ extern char g_device_code[24];
 #define M_MONEYRATE  "moneyRate"  //单位扣费金额
 #define M_LOGRATE    "logRate"    //提交扣费记录频率(指令3)，单位秒
 
+
 //指令1  字段值
 extern u8 g_disable;
 extern u8 g_abnormal ;
@@ -51,11 +57,14 @@ extern u8 g_logRate ;
 
 //设备当前业务状态
 extern u8   g_state;             //设备当前状态
-extern char g_card_id[24];       //当前卡片ID
+extern char g_card_id[24];       //当前卡片ID, 通常15位
 extern u16 g_ICCard_Value;       //卡片余额
 
 
 enum{
+    INIT = 0,  //系统初始化状态 ——> 连接服务器
+    TCP_OK,    //TCP连接建立成功    ——> 订阅mqtt服务
+    MQTT_OK,   //mqtt订阅成功  -> 等待IC卡
     WAIT_IC,   //等待IC卡
     ON_IC,     //检测到IC卡
 };
