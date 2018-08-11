@@ -199,8 +199,7 @@ u8 sim800c_gprs_test(void)
 {
     const u8 *port="8086";  //端口固定为8086,当你的电脑8086端口被其他程序占用的时候,请修改为其他空闲端口
     u8 mode=0;              //0,TCP连接;1,UDP连接
-    u8 ipbuf[16]="124.90.130.2";//IP缓存
-    printf("sim800c_gprs_test. mode=[%s] ip=[%s:%s]\r\n", (u8*)modetbl[mode], ipbuf, (u8*)port);
+    printf("sim800c_gprs_test. mode=[%s] ip=[%s:%s]\r\n", (u8*)modetbl[mode], HOST_IP, HOST_PORT);
     sim800c_send_cmd("AT+CIPCLOSE=1","CLOSE OK",100);   //关闭连接
     sim800c_send_cmd("AT+CIPSHUT","SHUT OK",100);       //关闭移动场景 
     if(sim800c_send_cmd("AT+CGCLASS=\"B\"","OK",1000))return 1;             //设置GPRS移动台类别为B,支持包交换和数据交换 
@@ -209,9 +208,9 @@ u8 sim800c_gprs_test(void)
     if(sim800c_send_cmd("AT+CIPCSGP=1,\"CMNET\"","OK",500))return 4;        //设置为GPRS连接模式
     if(sim800c_send_cmd("AT+CIPHEAD=1","OK",500))return 5;                  //设置接收数据显示IP头(方便判断数据来源)   
 
-    u3_printf("AT+CLDTMF=2,\"%s\"\r\n", ipbuf); 
+    u3_printf("AT+CLDTMF=2,\"%s\"\r\n", HOST_IP); 
 
-    sim800c_tcpudp_test(mode, ipbuf, (u8*)port);
+    sim800c_tcpudp_test(mode, HOST_IP, (u8*)port);
 
     return 0;
 } 

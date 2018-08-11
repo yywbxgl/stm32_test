@@ -15,7 +15,12 @@
 #include "utils.h"
 #include <string.h>
 #include <jansson.h>
+#include <stdlib.h>
 #include "app.h"
+#include "sim800c.h"
+#include "MQTTPacket.h"
+#include "MQTTPublish.h"
+
 
 
 
@@ -42,7 +47,8 @@ int main(void)
 
     //fm1702_test();
 
-    u8 time_t=0;
+
+    u16 time_t=0;
     while(1)
     {
         if (g_state == INIT)
@@ -86,47 +92,66 @@ int main(void)
             //关闭数码数码管，等待IC卡、
             setOffFlag();
 
-            if (scan_for_card() == TRUE){
-                g_state = ON_IC;
+            //查询接收消息
+            recv_mqtt_message();
+
+            //等待IC卡
+            if (time_t % 20 == 0){
+                if (scan_for_card() == TRUE){
+                    g_state = ON_IC;
+                }
             }
 
-            USART3_RX_STA=0;
             //每隔g_heart发送一个心跳
-            if (time_t % g_heart == 0)
+            if (time_t % (g_heart*100) == 0)
             {
                 if (send_keep_alive_mesaage() == FALSE){
                     g_state = TCP_OK;
                 }
             }
 
-            if(USART3_RX_STA&0X8000)        //接收到一次数据了
-            {
-                USART3_RX_BUF[USART3_RX_STA&0X7FFF]=0;  //添加结束符
-                LOGI("recv data[%d]", USART3_RX_STA&0X7FFF);//接收到的字节数
-                PrintHex(USART3_RX_BUF, USART3_RX_STA&0X7FFF);
-                USART3_RX_STA=0;
-            }
         }
         else if (g_state == ON_IC){
-            //打开数码管，显示卡内余额
+            
+            //打开数码数码管显示当前设备状态
+            memset(g_Digitron, ON_IC, sizeof(g_Digitron));
             setOnFlag();
-            if (card_runing() == FALSE)
-            {
-                //结束前发送一个结束信令
-                LOGI("发送结束信令");
+
+            //发送开始消费请求，允许放水
+            if(send_start_consume_mesaage() == TRUE){
+                g_state = IC_CONSUME;
+                g_consume_time = 0;  //开始计费
+                DCF_Set();           //打开电磁阀
+            }else{
                 g_state = WAIT_IC;
             }
 
-            //每隔g_logRate发送一消费信息
-            if (time_t % g_logRate == 0)
+        }
+        else if (g_state == IC_CONSUME){
+            
+            setOnFlag();  //打开数码管，显示卡内余额
+            if (card_runing() == FALSE)
             {
-                LOGI("发送扣费信令");
+               //结束前发送一个结束信令
+               send_finish_consume_mesaage();
+               g_state = WAIT_IC;
+               DCF_Reset();         //关闭电磁阀
+               g_consume_time = 0;  //结束计费
             }
+
+            //每隔g_logRate发送一消费信息
+            if (time_t % (g_logRate*100) == 0)
+            {
+               send_consume_mesaage();
+            }
+
+            recv_mqtt_message();
         }
 
-        delay_ms(500);
+        delay_ms(10);
         time_t++;
     }
+
 
 
 

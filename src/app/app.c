@@ -12,7 +12,8 @@
 #include "utils.h"
 #include "message.h"
 #include <jansson.h>
-
+#include "MQTTPacket.h"
+#include "MQTTPublish.h"
 
 
 
@@ -226,7 +227,6 @@ u8 subscribe_mqtt(void)
         u3_printf_hex(mqtt_msg, len);
         delay_ms(1000);                      //必须加延时
         //sim800c_send_cmd((u8*)0X1A,0,0);   //CTRL+Z,结束数据发送,启动一次传输
-        delay_ms(1000);                      //必须加延时
         LOGI("MQTT握手成功.");
     }else if(sim800c_send_cmd(send_cmd,"ERROR",200)==0){
         LOGE("MQTT握手失败.");
@@ -244,7 +244,6 @@ u8 subscribe_mqtt(void)
         u3_printf_hex(mqtt_msg, len);
         delay_ms(1000);                 //必须加延时
         //sim800c_send_cmd((u8*)0X1A,0,0);    //CTRL+Z,结束数据发送,启动一次传输
-        delay_ms(1000);               //必须加延时
         LOGI("MQTT订阅主题成功.");
     }
     else if(sim800c_send_cmd(send_cmd,"ERROR",200)==0){
@@ -261,40 +260,36 @@ u8 send_keep_alive_mesaage(void)
 {
     u16 len;
     u8 msg[300]={0}; //信令内容
+    LOGD("发送MQTT保活信令.");
     create_keep_alive_message(msg, sizeof(msg));
-    PrintHex(msg, strlen(msg));
-    LOGD("message:%s", msg);
-    len = mqtt_publish_message(mqtt_msg, TOPIC_PUB, (char*)msg, 2);
-    PrintHex(mqtt_msg,len);
-    LOGD("send len=%d", len);
+    //PrintHex(msg, strlen(msg));
+    //LOGD("message:%s", msg);
 
+    MQTTString top = MQTTString_initializer;
+    top.cstring = TOPIC_PUB;
+    len = MQTTSerialize_publish((unsigned char*)mqtt_msg, sizeof(mqtt_msg), 0 ,0, 0, 0, top, msg, strlen(msg));
+    //PrintHex(mqtt_msg,len);
 
-    //如果大于254个字节，需要分多次发送
-    //每次发送200个字节
+    //如果大于254个字节，需要分多次发送,每次发送200个字节
     u8 t = 0 ;  //记录已经发送的次数
-
     while(len > 254){
         sprintf((char*)send_cmd, "AT+CIPSEND=%d", 200);//接收到的字节数
         if(sim800c_send_cmd(send_cmd,">",200)==0)//发送数据
         {
-            LOGD("发送MQTT保活信令.");
             u3_printf_hex(mqtt_msg + t*200, 200);
             delay_ms(200);                //必须加延时
-            USART3_RX_STA = 0;
+            //USART3_RX_STA = 0;
         }
         t++;
         len = len - 200;
     }
 
-
     sprintf((char*)send_cmd, "AT+CIPSEND=%d", len);//接收到的字节数
     if(sim800c_send_cmd(send_cmd,">",200)==0)//发送数据
     {
-        LOGD("发送MQTT保活信令.");
         u3_printf_hex(mqtt_msg + t*200, len);
-        delay_ms(1000);                 //必须加延时
-        delay_ms(1000);                //必须加延时
-        USART3_RX_STA = 0;
+        delay_ms(200);                  //必须加延时
+        //USART3_RX_STA=0;
     }else if (sim800c_send_cmd(send_cmd,"ERROR",200)==0){
         //发送失败，连接可能断开
         LOGE("发送保活信令失败.");
@@ -303,4 +298,160 @@ u8 send_keep_alive_mesaage(void)
 
     return TRUE;
 }
+
+
+u8 recv_mqtt_message(void)
+{
+    //接收到一次数据了
+    if(USART3_RX_STA&0X8000)
+    {
+       //LOGD("收到了数据=%s", USART3_RX_BUF);
+       //PrintHex(USART3_RX_BUF, 100);
+       //收到订阅消息
+       if (USART3_RX_BUF[0] == 0x32){
+           unsigned char dup;
+           int qos;
+           unsigned char retained;
+           unsigned short msgid;
+           int payloadlen_in;
+           unsigned char* payload_in;
+           MQTTString receivedTopic;
+           
+           MQTTDeserialize_publish(&dup, &qos, &retained, &msgid, &receivedTopic,
+                               &payload_in, &payloadlen_in, USART3_RX_BUF, sizeof(USART3_RX_BUF));
+           strncpy(mqtt_msg, payload_in, payloadlen_in);
+           LOGI("收到发布消息[msg_id:%d]=%s\n",  msgid, mqtt_msg);
+           //发送ACK包
+           u8 ack[4] ={0x40, 0x02, (0xff00&msgid)>>8, 0xff&msgid};
+           if(sim800c_send_cmd("AT+CIPSEND=4",">",200)==0){
+               //LOGD("返回ACK包");
+               u3_printf_hex(ack, sizeof(ack));
+               delay_ms(200);
+           }
+           return TRUE;
+       }
+
+       #if 0
+       p2=strstr((char*)USART3_RX_BUF,"+IPD");
+       if(p2)//接收到TCP/UDP数据
+       {
+           int recv_len = 0;
+           p2 = strstr((char*)USART3_RX_BUF,",");
+           p3 = strstr((char*)USART3_RX_BUF,":");
+           *p3 = 0;//加入结束符
+           recv_len = atoi(p2+1);
+           *(p3 + 1 + recv_len) = 0; //只显示接收到的数据
+           LOGD("收到%d个字节，内容如下:%s", recv_len, p3+1);
+           PrintHex((u8*)p3+1, recv_len);
+       }
+       #endif
+       
+       USART3_RX_STA=0;
+       return FALSE;
+    }
+
+    return FALSE;
+}
+
+
+u8 send_start_consume_mesaage(void)
+{
+
+    u16 len;
+    u8 msg[200]={0}; //信令内容
+    LOGD("发送开始消费信令.");
+    
+    create_start_consume_message(msg, sizeof(msg));
+    LOGD("message:%s", msg);
+
+    MQTTString top = MQTTString_initializer;
+    top.cstring = TOPIC_PUB;
+    len = MQTTSerialize_publish((unsigned char*)mqtt_msg, sizeof(mqtt_msg), 0 ,0, 0, 0, top, msg, strlen(msg));
+    sprintf((char*)send_cmd, "AT+CIPSEND=%d", len);//要发送的数据长度
+    if(sim800c_send_cmd(send_cmd,">",200)==0)//发送数据
+    {
+       u3_printf_hex(mqtt_msg, len);
+       delay_ms(200);                  //必须加延时
+       //USART3_RX_STA=0;
+    }else if (sim800c_send_cmd(send_cmd,"ERROR",200)==0){
+       //发送失败，连接可能断开
+       LOGE("发送开始消费信令失败.");
+       return FALSE;
+    }
+
+
+    
+    //等待消息回复，超时5秒
+    u16 t=500;
+    while(t--){
+        if (recv_mqtt_message() == TRUE){
+            if(deal_start_consume_response(mqtt_msg, sizeof(mqtt_msg)) == TRUE)
+                return TRUE;
+            else
+                return FALSE;
+        }
+        delay_ms(10);
+    }
+
+    return FALSE;
+}
+
+
+u8 send_consume_mesaage(void)
+{
+
+    u16 len;
+    u8 msg[200]={0}; //信令内容
+    LOGD("定时发送扣费信息.");
+
+    create_consume_message(msg, sizeof(msg), 0);
+    LOGD("message:%s", msg);
+
+    MQTTString top = MQTTString_initializer;
+    top.cstring = TOPIC_PUB;
+    len = MQTTSerialize_publish((unsigned char*)mqtt_msg, sizeof(mqtt_msg), 0 ,0, 0, 0, top, msg, strlen(msg));
+    sprintf((char*)send_cmd, "AT+CIPSEND=%d", len);//要发送的数据长度
+    if(sim800c_send_cmd(send_cmd,">",200)==0)//发送数据
+    {
+        u3_printf_hex(mqtt_msg, len);
+        delay_ms(200);                  //必须加延时
+        //USART3_RX_STA=0;
+    }else if (sim800c_send_cmd(send_cmd,"ERROR",200)==0){
+        //发送失败，连接可能断开
+        LOGE("定时发送扣费信息失败.");
+        return FALSE;
+    }
+
+}
+
+
+//发送结束扣费信息
+u8 send_finish_consume_mesaage(void)
+{
+
+    u16 len;
+    u8 msg[200]={0}; //信令内容
+    LOGD("发送结束扣费信息.");
+
+    create_consume_message(msg, sizeof(msg), 1);//结束标志位
+    LOGD("message:%s", msg);
+
+    MQTTString top = MQTTString_initializer;
+    top.cstring = TOPIC_PUB;
+    len = MQTTSerialize_publish((unsigned char*)mqtt_msg, sizeof(mqtt_msg), 0 ,0, 0, 0, top, msg, strlen(msg));
+    sprintf((char*)send_cmd, "AT+CIPSEND=%d", len);//要发送的数据长度
+    if(sim800c_send_cmd(send_cmd,">",200)==0)//发送数据
+    {
+        u3_printf_hex(mqtt_msg, len);
+        delay_ms(200);                  //必须加延时
+        //USART3_RX_STA=0;
+    }else if (sim800c_send_cmd(send_cmd,"ERROR",200)==0){
+        //发送失败，连接可能断开
+        LOGE("发送结束扣费信息失败.");
+        return FALSE;
+    }
+
+}
+
+
 

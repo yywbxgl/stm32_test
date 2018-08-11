@@ -3,14 +3,16 @@
 
 #include "sys.h"
 
+//测试用
+#define DEBUG_TEST 
+
 
 //连接代理服务器配置
-#define HOST_IP "101.67.134.148"
-#define HOST_PORT "8086"
-#define CONNECT_MODE 0                              //0-TCP连接;1-UDP连接
-//#define HOST_IP "114.215.73.18"                     //mqtt代理服务器
-//#define HOST_PORT "1883"                            //mqtt代理服务器端口
-#define CLIENTID "GID_water_test@@@TEST00003"
+//#define HOST_IP "101.67.134.148"
+//#define HOST_PORT "8086"
+#define HOST_IP "mqtt-cn-0pp0nqosd05.mqtt.aliyuncs.com"  //mqtt代理服务器
+#define HOST_PORT "1883"                            //mqtt代理服务器端口
+#define CLIENTID "GID_water_test@@@868926036902861"
 #define USRNAME "LTAIwfxXisNo3pDh"                  //usr
 #define PASSWD "kqfxXvRTsAnQJHSbbDkj1B0iXfk="       //计算后的摘要
 #define TOPIC_PUB "water_device_to_server_test"     //发布消息主题
@@ -27,13 +29,12 @@ extern char g_device_code[24];
 #define M_CODE       "code"       //是否成功【-1 失败 1成功】
 #define M_DEVICECODE "deviceCode" //水控机发起写“mqtt” 服务端发起写“mqServer”
 #define M_ERROR      "errorMsg"   //错误信息
-
 //公共部分字段值
 #define M_VERSION_VALUE "10"
 extern char g_device_code[24];
 
 
-//指令1  字段
+//指令1  字段，保活指令
 #define M_DISSABLE   "disable"    //禁用类型(0.不禁用，1.二维码，2.ic卡，3.全部)
 #define M_ABNORMAL   "abnormal"   //异常类型(0.无异常，1.电磁阀异常，2.LED异常，3.龙头异常，4...)
 #define M_HEART      "heart"      //心跳评率(秒)
@@ -42,8 +43,6 @@ extern char g_device_code[24];
 #define M_CHARGRATE  "chargRate"  //单位扣费频率，单位秒
 #define M_MONEYRATE  "moneyRate"  //单位扣费金额
 #define M_LOGRATE    "logRate"    //提交扣费记录频率(指令3)，单位秒
-
-
 //指令1  字段值
 extern u8 g_disable;
 extern u8 g_abnormal ;
@@ -55,18 +54,40 @@ extern u8 g_moneyRate;
 extern u8 g_logRate ;
 
 
+//指令2字段，开始消费指令
+#define M_CARDMONEY "cardMoney"
+#define M_CARDNO    "cardNo"
+//指令2字段值
+extern char g_card_id[24];   //当前卡片ID, 最多15位
+extern u16 g_ICCard_Value;   //卡片余额
+
+
+#define M_switched "switched"
+#define M_bingding "bingding"
+#define M_serverCardNo "serverCardNo"
+#define M_orderNo  "orderNo"
+
+extern char g_orderNo[24];
+extern char g_serverCardNo[9];
+
+
+
+//指令3,4字段，扣费信息
+#define M_TIME     "time"
+#define M_MONEY    "money"
+
+
+extern u16 g_consume_time;
+
 //设备当前业务状态
 extern u8   g_state;             //设备当前状态
-extern char g_card_id[24];       //当前卡片ID, 通常15位
-extern u16 g_ICCard_Value;       //卡片余额
-
-
 enum{
     INIT = 0,  //系统初始化状态 ——> 连接服务器
     TCP_OK,    //TCP连接建立成功    ——> 订阅mqtt服务
     MQTT_OK,   //mqtt订阅成功  -> 等待IC卡
     WAIT_IC,   //等待IC卡
     ON_IC,     //检测到IC卡
+    IC_CONSUME,//开始消费
 };
 
 

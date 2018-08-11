@@ -75,7 +75,7 @@ void RTC_IRQHandler(void)
     {
         RTC_Get();//更新时间
 
-        if (g_state == ON_IC){
+        if (g_state == IC_CONSUME){
             g_Digitron[7] = g_ICCard_Value%10;
             g_Digitron[6] = (g_ICCard_Value/10)%10;
             g_Digitron[5] = (g_ICCard_Value/100)%10;
@@ -92,10 +92,11 @@ void RTC_IRQHandler(void)
         if(cnt >= g_chargRate)
         {
             cnt = 0 ;
-            if (g_state == ON_IC)
+            if (g_state == IC_CONSUME)
             {
                 //按频率进行指定扣费
                 g_ICCard_Value = g_ICCard_Value - g_moneyRate;
+                g_consume_time++;
             }
         }
 

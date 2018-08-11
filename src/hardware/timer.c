@@ -88,7 +88,7 @@ void TIM7_IRQHandler(void)
 {
     if (TIM_GetITStatus(TIM7, TIM_IT_Update) != RESET)//是更新中断
     {
-        TIM_ClearITPendingBit(TIM7, TIM_IT_Update  );  //清除TIM7更新中断标志    
+        TIM_ClearITPendingBit(TIM7, TIM_IT_Update  );  //清除TIM7更新中断标志
         USART3_RX_STA|=1<<15;	//标记接收完成
         TIM_Cmd(TIM7, DISABLE);  //关闭TIM7 
     }
@@ -123,7 +123,7 @@ void TIM7_Int_Init(u16 arr,u16 psc)
     TIM_Cmd(TIM7,ENABLE);//开启定时器7
 
     NVIC_InitStructure.NVIC_IRQChannel = TIM7_IRQn;
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=2 ;//抢占优先级0
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=0 ;//抢占优先级0
     NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;		//子优先级2
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;			//IRQ通道使能
     NVIC_Init(&NVIC_InitStructure);	//根据指定的参数初始化VIC寄存器
