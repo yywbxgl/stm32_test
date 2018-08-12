@@ -114,7 +114,7 @@ int main(void)
         else if (g_state == ON_IC){
             
             //打开数码数码管显示当前设备状态
-            memset(g_Digitron, ON_IC, sizeof(g_Digitron));
+            //memset(g_Digitron, ON_IC, sizeof(g_Digitron));
             setOnFlag();
 
             //发送开始消费请求，允许放水

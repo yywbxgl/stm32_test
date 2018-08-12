@@ -68,7 +68,14 @@ u8 scan_for_card(void)
     else
     {
         g_ICCard_Value = (buf[0]<<8)|buf[1];  //读取卡内余额
+        PrintHex(buf, sizeof(buf));
+        u8 i =0;
+        for(; i<9;++i){
+            g_serverCardNo[i]= buf[i+4];
+        }
+        //memcpy(g_serverCardNo, buf[4] , sizeof(g_serverCardNo));//该接口有问题
         LOGI("读卡数据成功，余额= %d", g_ICCard_Value);
+        LOGI("读卡数据成功，服务ID= %s", g_serverCardNo);
     }
 
     return TRUE;
@@ -112,6 +119,50 @@ u8 card_runing(void)
     return TRUE;
 }
 
+u8 ic_wrtie_server_id(void)
+{
+    u8 status;          //读写卡状态返回
+    u8 buf[16]= {0};    //读写卡缓冲buff
+
+    status=MIF_READ(buf,28); //读卡，读取7扇区0块数据到buffer[0]-buffer[15]
+    if(status != FM1702_OK)
+    {
+        LOGE("读卡数据失败");
+        g_state = WAIT_IC; //读卡失败，卡片移走，设备状态置位
+        return FALSE;
+    }
+
+    //写入卡片服务ID数据
+    u8 i =0;
+    for(; i<9; ++i){
+        buf[i+4]= g_serverCardNo[i];
+    }
+    status=MIF_Write(buf,28);  //写卡，将buffer[0]-buffer[15]写入1扇区0块
+    if(status != FM1702_OK)
+    {
+        LOGE("写服务器绑定ID失败");
+        g_state = WAIT_IC;     //写卡失败，卡片移走，设备状态置位
+        return FALSE;
+    }
+    else{
+        LOGE("写服务器绑定ID成功，%s", g_serverCardNo);
+    }
+
+    status=MIF_READ(buf,28); //读卡，读取7扇区0块数据到buffer[0]-buffer[15]
+    if(status != FM1702_OK)
+    {
+        LOGE("读卡数据失败");
+        g_state = WAIT_IC; //读卡失败，卡片移走，设备状态置位
+        return FALSE;
+    }
+    else
+    {
+         LOGD("当前服务器ID=%s", (char*)buf[4]);
+    }
+
+
+    return TRUE;
+}
 
 u8 connect_to_server(void)
 {
@@ -383,7 +434,6 @@ u8 send_start_consume_mesaage(void)
     }
 
 
-    
     //等待消息回复，超时5秒
     u16 t=500;
     while(t--){

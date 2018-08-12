@@ -67,7 +67,7 @@ extern u16 g_ICCard_Value;   //ø®∆¨”‡∂Ó
 #define M_orderNo  "orderNo"
 
 extern char g_orderNo[24];
-extern char g_serverCardNo[9];
+extern u8 g_serverCardNo[10];
 
 
 

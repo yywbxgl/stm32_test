@@ -17,6 +17,13 @@ u8 scan_for_card(void);
 //定时扣费在RTC中断中执行，扣除全局变量
 u8 card_runing(void);
 
+
+//写入IC卡服务器绑定ID 
+u8 ic_wrtie_server_id(void);
+
+
+
+
 //连接阿里云服务器
 u8 connect_to_server(void); 
 
