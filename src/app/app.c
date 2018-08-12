@@ -142,6 +142,9 @@ u8 connect_to_server(void)
     strncpy(g_device_code, (char*)USART3_RX_BUF+2, sizeof(g_device_code));
     LOGI("检测到序列号: %s", g_device_code); //保存sim卡序列号作为设备序列号
     USART3_RX_STA=0;
+    //组装ClientID
+    strncpy(g_clent_id + strlen(g_clent_id), (char*)g_device_code, sizeof(g_device_code));
+    LOGD("客户端ID:%s", g_clent_id);
 
     //检测信号强度
     if(sim800c_send_cmd("AT+CSQ","+CSQ:",200))//查询信号质量
@@ -218,7 +221,7 @@ u8 subscribe_mqtt(void)
     //与mqtt服务器建立握手
     u16 len;
     //发起mqtt_connect请求
-    len=mqtt_connect_message(mqtt_msg, CLIENTID , USRNAME, PASSWD);//id,用户名和密码
+    len=mqtt_connect_message(mqtt_msg, g_clent_id , USRNAME, PASSWD);//id,用户名和密码
     PrintHex(mqtt_msg,len);
     sprintf((char*)send_cmd, "AT+CIPSEND=%d", len);//接收到的字节数
     USART3_RX_STA = 0;

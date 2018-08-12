@@ -2,6 +2,7 @@
 #include "logging.h"
 
 //公共部分字段值初始化
+char g_clent_id[48] = GROUPID; 
 char g_device_code[24] = { 0};
 
 //指令1  字段值初始化

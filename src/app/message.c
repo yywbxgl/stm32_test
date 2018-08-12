@@ -79,6 +79,7 @@ u8 deal_start_consume_response(u8 *outbuf, u16 len)
     json_t* binging = NULL;
     json_t* switched = NULL;
     json_t* serverCardNo = NULL;
+    json_t* card_money = NULL;
 
 
     message = json_loads((char*)outbuf, JSON_ENCODE_ANY, NULL);
@@ -114,14 +115,21 @@ u8 deal_start_consume_response(u8 *outbuf, u16 len)
         ret = FALSE;
     }
 
-   if (ret == FALSE){
+    card_money = json_object_get(param, M_CARDMONEY);
+    if (json_integer_value(card_money) != g_ICCard_Value ){
+        g_ICCard_Value = json_integer_value(card_money);
+        LOGI("服务端返回卡内余额：%d", g_ICCard_Value);
+    }
+    
+
+    if (ret == FALSE){
        json_decref(message);
        json_decref(param);
        json_decref(ordNo);
        json_decref(binging);
        json_decref(switched);
        json_decref(serverCardNo);
-   }
+    }
    
    return ret;
 }

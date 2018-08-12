@@ -12,14 +12,14 @@
 //#define HOST_PORT "8086"
 #define HOST_IP "mqtt-cn-0pp0nqosd05.mqtt.aliyuncs.com"  //mqtt代理服务器
 #define HOST_PORT "1883"                            //mqtt代理服务器端口
-#define CLIENTID "GID_water_test@@@868926036902861"
+#define GROUPID "GID_water_test@@@"
 #define USRNAME "LTAIwfxXisNo3pDh"                  //usr
 #define PASSWD "kqfxXvRTsAnQJHSbbDkj1B0iXfk="       //计算后的摘要
 #define TOPIC_PUB "water_device_to_server_test"     //发布消息主题
 #define TOPIC_SUB "water_server_to_device_test"     //订阅消息主题
 
-extern char g_device_code[24];
-
+extern char g_clent_id[48]; 
+extern char g_device_code[24]; //设备序列号
 
 
 //公共部分字段
@@ -31,7 +31,6 @@ extern char g_device_code[24];
 #define M_ERROR      "errorMsg"   //错误信息
 //公共部分字段值
 #define M_VERSION_VALUE "10"
-extern char g_device_code[24];
 
 
 //指令1  字段，保活指令
