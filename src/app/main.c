@@ -24,7 +24,6 @@
 
 
 
-
 int main(void)
 {
 
@@ -38,9 +37,9 @@ int main(void)
     DCF_Init();             //电磁阀初始化
     DPinit();               //数码管初始化
     LOGI("hardware init finish.");
-    
+
     //usart_test();
- 
+
     //rtc_test();
 
     //sim800c_test();
@@ -51,7 +50,7 @@ int main(void)
     u16 time_t=0;
     while(1)
     {
-        if (g_state == INIT)
+        if(g_state == INIT)
         {
             //打开数码数码管显示当前设备状态
             memset(g_Digitron, INIT, sizeof(g_Digitron));
@@ -61,7 +60,7 @@ int main(void)
                 g_state = TCP_OK;
             }
         }
-        else if (g_state == TCP_OK)
+        else if(g_state == TCP_OK)
         {
             //打开数码数码管显示当前设备状态
             memset(g_Digitron, TCP_OK, sizeof(g_Digitron));
@@ -111,7 +110,7 @@ int main(void)
             }
 
         }
-        else if (g_state == ON_IC){
+        else if(g_state == ON_IC){
             
             //打开数码数码管显示当前设备状态
             //memset(g_Digitron, ON_IC, sizeof(g_Digitron));
@@ -127,7 +126,7 @@ int main(void)
             }
 
         }
-        else if (g_state == IC_CONSUME){
+        else if(g_state == IC_CONSUME){
             
             setOnFlag();  //打开数码管，显示卡内余额
             if (card_runing() == FALSE)
@@ -140,7 +139,7 @@ int main(void)
             }
 
             //每隔g_logRate发送一消费信息
-            if (time_t % (g_logRate*100) == 0)
+            if(time_t % (g_logRate*100) == 0)
             {
                send_consume_mesaage();
             }
@@ -151,8 +150,6 @@ int main(void)
         delay_ms(10);
         time_t++;
     }
-
-
 
 
 }

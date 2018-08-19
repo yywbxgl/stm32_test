@@ -153,17 +153,15 @@ u8 deal_start_consume_response(u8 *outbuf, u16 len)
     }
 
 
-    if (ret == FALSE){
-       json_decref(message);
-       json_decref(param);
-       json_decref(ordNo);
-       json_decref(binging);
-       json_decref(switched);
-       json_decref(serverCardNo);
-       json_decref(card_money);
-    }
-   
-   return ret;
+    json_decref(message);
+    json_decref(param);
+    json_decref(ordNo);
+    json_decref(binging);
+    json_decref(switched);
+    json_decref(serverCardNo);
+    json_decref(card_money);
+
+    return ret;
 }
 
 

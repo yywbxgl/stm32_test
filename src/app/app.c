@@ -374,7 +374,7 @@ u8 recv_mqtt_message(void)
            MQTTDeserialize_publish(&dup, &qos, &retained, &msgid, &receivedTopic,
                                &payload_in, &payloadlen_in, USART3_RX_BUF, sizeof(USART3_RX_BUF));
            strncpy(mqtt_msg, payload_in, payloadlen_in);
-           LOGI("收到发布消息[msg_id:%d]=%s\n",  msgid, mqtt_msg);
+           LOGI("收到服务器消息[msgId:%d]=%s\n",  msgid, mqtt_msg);
            //发送ACK包
            u8 ack[4] ={0x40, 0x02, (0xff00&msgid)>>8, 0xff&msgid};
            if(sim800c_send_cmd("AT+CIPSEND=4",">",200)==0){
