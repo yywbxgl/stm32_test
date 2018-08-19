@@ -68,6 +68,7 @@ u8 scan_for_card(void)
     else
     {
         g_ICCard_Value = (buf[0]<<8)|buf[1];  //读取卡内余额
+        LOGI("扇区读取：");
         PrintHex(buf, sizeof(buf));
         u8 i =0;
         for(; i<9;++i){
@@ -359,10 +360,11 @@ u8 recv_mqtt_message(void)
     //接收到一次数据了
     if(USART3_RX_STA&0X8000)
     {
-       //LOGD("收到了数据=%s", USART3_RX_BUF);
+       LOGD("收到了数据=%x", USART3_RX_STA);
        //PrintHex(USART3_RX_BUF, 100);
        //收到订阅消息
        if (USART3_RX_BUF[0] == 0x32){
+           USART3_RX_BUF[USART3_RX_STA&0x7fff] = 0;
            unsigned char dup;
            int qos;
            unsigned char retained;
@@ -374,6 +376,8 @@ u8 recv_mqtt_message(void)
            MQTTDeserialize_publish(&dup, &qos, &retained, &msgid, &receivedTopic,
                                &payload_in, &payloadlen_in, USART3_RX_BUF, sizeof(USART3_RX_BUF));
            strncpy(mqtt_msg, payload_in, payloadlen_in);
+           mqtt_msg[payloadlen_in] = 0;
+           //LOGI("收到服务器消息1[msgId:%d]=%s\n",  msgid, payload_in);
            LOGI("收到服务器消息[msgId:%d]=%s\n",  msgid, mqtt_msg);
            //发送ACK包
            u8 ack[4] ={0x40, 0x02, (0xff00&msgid)>>8, 0xff&msgid};
@@ -383,6 +387,10 @@ u8 recv_mqtt_message(void)
                delay_ms(200);
            }
            return TRUE;
+       }
+       else{
+            //不是服务器消息，清除接受缓冲
+            USART3_RX_STA = 0;
        }
 
        #if 0
@@ -399,7 +407,7 @@ u8 recv_mqtt_message(void)
            PrintHex((u8*)p3+1, recv_len);
        }
        #endif
-       
+
        USART3_RX_STA=0;
        return FALSE;
     }
