@@ -146,7 +146,7 @@ u8 ic_wrtie_server_id(void)
         return FALSE;
     }
     else{
-        LOGE("写服务器绑定ID成功，%s", g_serverCardNo);
+        LOGI("写服务器绑定ID成功，%s", g_serverCardNo);
     }
 
     status=MIF_READ(buf,28); //读卡，读取7扇区0块数据到buffer[0]-buffer[15]
@@ -378,7 +378,7 @@ u8 recv_mqtt_message(void)
            strncpy(mqtt_msg, payload_in, payloadlen_in);
            mqtt_msg[payloadlen_in] = 0;
            //LOGI("收到服务器消息1[msgId:%d]=%s\n",  msgid, payload_in);
-           LOGI("收到服务器消息[msgId:%d]=%s\n",  msgid, mqtt_msg);
+           LOGI("收到服务器消息=%s",   mqtt_msg);
            //发送ACK包
            u8 ack[4] ={0x40, 0x02, (0xff00&msgid)>>8, 0xff&msgid};
            if(sim800c_send_cmd("AT+CIPSEND=4",">",200)==0){
@@ -416,15 +416,21 @@ u8 recv_mqtt_message(void)
 }
 
 
+u8 parse_mqtt_message(void)
+{
+    u8 ret_trade = parse_service_message_common(mqtt_msg, sizeof(mqtt_msg));
+    return ret_trade;
+}
+
+
 u8 send_start_consume_mesaage(void)
 {
 
     u16 len;
     u8 msg[200]={0}; //信令内容
-    LOGD("发送开始消费信令.");
-    
+
     create_start_consume_message(msg, sizeof(msg));
-    LOGD("message:%s", msg);
+    LOGD("发送开始消费信令=%s.", msg);
 
     MQTTString top = MQTTString_initializer;
     top.cstring = TOPIC_PUB;

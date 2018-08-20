@@ -79,7 +79,6 @@ int main(void)
             setOnFlag();
 
             USART3_RX_STA=0;
-
             if (send_keep_alive_mesaage() == TRUE){
                 g_state = WAIT_IC;
             }
@@ -88,11 +87,24 @@ int main(void)
             }
         }
         else if(g_state == WAIT_IC){
+
             //关闭数码数码管，等待IC卡、
             setOffFlag();
 
             //查询接收消息
-            recv_mqtt_message();
+            if (recv_mqtt_message() == TRUE){
+                u8 trade = parse_mqtt_message();
+                if (trade == 1){
+                    //处理保活信令
+                    ;
+                }else if (trade == 6){
+                    //处理扫描消费信令
+                    ;
+                }else if (trade == 0){
+                    //处理主动上报保活信令
+                    ;
+                }
+            }
 
             //等待IC卡
             if (time_t % 20 == 0){

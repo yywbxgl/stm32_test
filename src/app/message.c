@@ -79,10 +79,8 @@ void create_start_consume_message(u8 *outbuf, u16 len)
 
 }
 
-
 u8 deal_start_consume_response(u8 *outbuf, u16 len)
 {
-    u8 ret = TRUE;
     json_t* message = NULL;
     json_t* param = NULL;
     json_t* ordNo = NULL;
@@ -93,36 +91,34 @@ u8 deal_start_consume_response(u8 *outbuf, u16 len)
 
 
     message = json_loads((char*)outbuf, JSON_ENCODE_ANY, NULL);
-    if(!json_is_object(message)){
+    if(!message || !json_is_object(message)){
         LOGE("Json 数据格式错误[message]");
-        ret = FALSE;
+        json_decref(message);
+        return FALSE;
     }
     
     param = json_object_get(message, "data");
-    if(!json_is_object(param)){
+    if(!param || !json_is_object(param)){
         LOGE("Json 数据格式错误[data]");
-        ret = FALSE;
+        json_decref(message);
+        return FALSE;
     }
 
     ordNo = json_object_get(param, M_orderNo);
-    if(!json_is_object(param)){
-        LOGD("Json 数据格式错误[M_orderNo]");
-        ret = FALSE;
+    if(!ordNo || !json_is_string(ordNo)){
+        LOGE("Json 数据格式错误[M_orderNo]");
+        json_decref(message);
+        return FALSE;
     }else{
         LOGI("当前消费订单:%s", json_string_value(ordNo));
         strncpy(g_orderNo, json_string_value(ordNo), sizeof(g_orderNo));
     }
 
-    switched = json_object_get(param, M_switched);
-    if (json_integer_value(switched) == 0 ){
-        LOGE("服务器不允许放水");
-        ret = FALSE;
-    }
-
     serverCardNo = json_object_get(param, M_serverCardNo);
-    if(!json_string_value(serverCardNo)){
-        LOGE("Json 数据格式错误. [M_serverCardNo]");
-        ret = FALSE;
+    if(!serverCardNo || !json_is_string(serverCardNo)){
+        LOGE("Json 数据格式错误[serverCardNo]");
+        json_decref(message);
+        return FALSE;
     }else{
         strncpy((char*)g_serverCardNo, json_string_value(serverCardNo), sizeof(g_serverCardNo));
         LOGD("返回卡片服务ID=%s", g_serverCardNo);
@@ -130,7 +126,11 @@ u8 deal_start_consume_response(u8 *outbuf, u16 len)
 
 
     binging = json_object_get(param, M_bingding);
-    if (json_integer_value(binging) == 0 ){
+    if(!binging || !json_is_integer(binging)){
+        LOGE("Json 数据格式错误[binging]");
+        json_decref(message);
+        return FALSE;
+    }else if (json_integer_value(binging) == 0 ){
         LOGE("卡片未绑定");
         //数码管显示服务ID
         printf("\r\n------\r\n");
@@ -140,31 +140,38 @@ u8 deal_start_consume_response(u8 *outbuf, u16 len)
             printf("%c", g_serverCardNo[i]);
         }
         printf("\r\n------\r\n");
-        ret = FALSE;
+        json_decref(message);
+        return FALSE;
     }else if( json_integer_value(binging) == 1){
         //strncpy((char*)g_serverCardNo, json_string_value(serverCardNo), sizeof(g_serverCardNo));
+        //烧写服务ID到卡片
         ic_wrtie_server_id();
     }
 
+    switched = json_object_get(param, M_switched);
+    if(!switched || !json_is_integer(switched)){
+        LOGD("Json 数据格式错误[switched]");
+        json_decref(message);
+        return FALSE;
+    }else if (json_integer_value(switched) == 0){
+        LOGE("服务器不允许放水");
+        json_decref(message);
+        return FALSE;
+    }
+
     card_money = json_object_get(param, M_CARDMONEY);
-    if (json_integer_value(card_money) != g_ICCard_Value ){
+    if(!card_money || !json_is_integer(card_money)){
+        LOGD("Json 数据格式错误[card_money]");
+        json_decref(message);
+        return FALSE;
+    }else if (json_integer_value(card_money) != g_ICCard_Value ){
         g_ICCard_Value = json_integer_value(card_money);
         LOGI("服务端返回卡内余额：%d", g_ICCard_Value);
     }
 
-
     json_decref(message);
-    json_decref(param);
-    json_decref(ordNo);
-    json_decref(binging);
-    json_decref(switched);
-    json_decref(serverCardNo);
-    json_decref(card_money);
-
-    return ret;
+    return TRUE;
 }
-
-
 
 void create_consume_message(u8 *outbuf, u16 len, u8 finish_flag)
 {
@@ -199,7 +206,40 @@ void create_consume_message(u8 *outbuf, u16 len, u8 finish_flag)
 
 }
 
+u8 parse_service_message_common(u8 *outbuf, u16 len)
+{
+    u8 ret = 0;
+    json_t* message = NULL;
+    //json_t* data = NULL;
+    json_t* trade = NULL;
+    //json_t* version = NULL;
+    //json_t* code = NULL;
+    //json_t* deviceCode = NULL;
+    //json_t* errorMsg = NULL;
 
+    json_error_t error;
+    message = json_loads((char*)outbuf, 0, &error);
+    if(!message){
+        LOGE("Json 数据格式错误[message]");
+        json_decref(message);
+        return FALSE;
+    }
 
+    trade = json_object_get(message, M_TRADE);
+    if (!trade || !json_is_string(trade)){
+        LOGE("Json 数据格式错误[trade]");
+        json_decref(message);
+        return FALSE;
+    }
+    else
+    {
+        const char* trade_value = json_string_value(trade);
+        LOGI("收到服务器指令[%s]", trade_value);
+        ret = atoi(trade_value);
+    }
+
+    json_decref(message);
+    return ret;
+}
 
 

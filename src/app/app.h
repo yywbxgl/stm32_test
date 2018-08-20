@@ -33,8 +33,11 @@ u8 subscribe_mqtt(void);
 //发送保活信息
 u8 send_keep_alive_mesaage(void);
 
-//查询接收到的消息
+//查询服务器发送过来的消息
 u8 recv_mqtt_message(void);
+
+//解析服务器发送过来的消息
+u8 parse_mqtt_message(void);
 
 //发送开始消费信令
 u8 send_start_consume_mesaage(void);
