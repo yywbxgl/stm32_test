@@ -123,7 +123,6 @@ int main(void)
                 DCF_Set();           //打开电磁阀
             }else{
                 //等待卡片移走置位状态
-                //display(g_ICCard_Value);
                 while(read_card() == TRUE)
                 {
                     delay_ms(100);

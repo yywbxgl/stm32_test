@@ -154,6 +154,16 @@ u8 deal_start_consume_response(u8 *outbuf, u16 len)
         LOGD("返回卡片服务ID=%s", g_serverCardNo);
     }
 
+    card_money = json_object_get(param, M_CARDMONEY);
+    if(!card_money || !json_is_integer(card_money)){
+        LOGD("Json 数据格式错误[card_money]");
+        json_decref(message);
+        return FALSE;
+    }else {
+        g_ICCard_Value = json_integer_value(card_money);
+        display(g_ICCard_Value);
+        LOGI("服务端返回卡内余额：%d", g_ICCard_Value);
+    }
 
     binging = json_object_get(param, M_bingding);
     if(!binging || !json_is_integer(binging)){
@@ -176,16 +186,6 @@ u8 deal_start_consume_response(u8 *outbuf, u16 len)
         //strncpy((char*)g_serverCardNo, json_string_value(serverCardNo), sizeof(g_serverCardNo));
         //烧写服务ID到卡片
         ic_wrtie_server_id();
-    }
-
-    card_money = json_object_get(param, M_CARDMONEY);
-    if(!card_money || !json_is_integer(card_money)){
-        LOGD("Json 数据格式错误[card_money]");
-        json_decref(message);
-        return FALSE;
-    }else if (json_integer_value(card_money) != g_ICCard_Value ){
-        g_ICCard_Value = json_integer_value(card_money);
-        LOGI("服务端返回卡内余额：%d", g_ICCard_Value);
     }
 
     switched = json_object_get(param, M_switched);
@@ -279,32 +279,6 @@ void create_consume_message(u8 *outbuf, u16 len, u8 ic_flag, u8 finish_flag)
 }
 
 
-void create_app_consume_message(u8 *outbuf, u16 len)
-{
-    char* out;
-    json_t* message = json_object();
-    json_t* param = json_object();
-    memset(outbuf, 0 , len);
-
-    json_object_set_new(param, M_orderNo, json_string(g_orderNo));
-    json_object_set_new(param, M_TIME, json_integer(g_consume_time*g_chargRate)); 
-    json_object_set_new(param, M_MONEY, json_integer(g_consume_time*g_moneyRate)); 
-
-    json_object_set_new(message, M_TRADE, json_string("7"));
-    json_object_set_new(message, M_DATA, param);
-    json_object_set_new(message, M_VERSION, json_string(M_VERSION_VALUE));
-    json_object_set_new(message, M_CODE, json_integer(1));
-    json_object_set_new(message, M_DEVICECODE, json_string(g_device_code));
-    json_object_set_new(message, M_ERROR, json_string(""));
-
-    out = json_dumps(message, 0);
-    strncpy((char*)outbuf, out, len);
-
-    free(out);
-    json_decref(param);
-    json_decref(message);
-
-}
 
 u8 parse_service_message_common(u8 *outbuf, u16 len)
 {

@@ -481,12 +481,10 @@ u8 send_start_consume_mesaage(void)
             {
                 if(deal_start_consume_response(mqtt_msg, sizeof(mqtt_msg)) == TRUE)
                 {
-                    display(g_ICCard_Value);
                     return TRUE;
                 }
                 else
                 {
-                    display(g_ICCard_Value);
                     return FALSE;
                 }
             }
