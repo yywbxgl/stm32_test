@@ -14,6 +14,8 @@
 #include <jansson.h>
 #include "MQTTPacket.h"
 #include "MQTTPublish.h"
+#include "digitron.h"
+
 
 
 
@@ -57,7 +59,7 @@ u8 scan_for_card(void)
     }
 
     sprintf(g_card_id, "%02x%02x%02x%02x", UID[0], UID[1], UID[2], UID[3]);
-    LOGI("读取到卡片唯一号：%s", g_card_id);
+    //LOGI("读取到卡片唯一号：%s", g_card_id);
 
     status=MIF_READ(buf,28);             //读卡，读取7扇区0块数据到buffer[0]-buffer[15]
     if(status != FM1702_OK)
@@ -119,6 +121,26 @@ u8 card_runing(void)
 
     return TRUE;
 }
+
+
+u8 read_card(void)
+{
+    u8 status;          //读写卡状态返回
+    u8 buf[16]= {0};    //读写卡缓冲buff
+
+    LOGI("卡片检测---");
+    status=MIF_READ(buf,28); //读卡，读取7扇区0块数据到buffer[0]-buffer[15]
+    if(status != FM1702_OK)
+    {
+        LOGI("卡片被移走");
+        return FALSE;
+    }
+    else
+    {
+        return TRUE;
+    }
+}
+
 
 u8 ic_wrtie_server_id(void)
 {
@@ -430,7 +452,7 @@ u8 send_start_consume_mesaage(void)
     u8 msg[200]={0}; //信令内容
 
     create_start_consume_message(msg, sizeof(msg));
-    LOGD("发送开始消费信令=%s.", msg);
+    LOGD("发送开始消费信令:%s.", msg);
 
     MQTTString top = MQTTString_initializer;
     top.cstring = TOPIC_PUB;
@@ -448,14 +470,26 @@ u8 send_start_consume_mesaage(void)
     }
 
 
-    //等待消息回复，超时5秒
+    //等待消息回复，超时10秒
     u16 t=500;
-    while(t--){
-        if (recv_mqtt_message() == TRUE){
-            if(deal_start_consume_response(mqtt_msg, sizeof(mqtt_msg)) == TRUE)
-                return TRUE;
-            else
-                return FALSE;
+    while(t--)
+    {
+        if (recv_mqtt_message() == TRUE)
+        {
+            u8 ret_trade = parse_service_message_common(mqtt_msg, sizeof(mqtt_msg));
+            if(2 == ret_trade)
+            {
+                if(deal_start_consume_response(mqtt_msg, sizeof(mqtt_msg)) == TRUE)
+                {
+                    display(g_ICCard_Value);
+                    return TRUE;
+                }
+                else
+                {
+                    display(g_ICCard_Value);
+                    return FALSE;
+                }
+            }
         }
         delay_ms(10);
     }
@@ -464,15 +498,14 @@ u8 send_start_consume_mesaage(void)
 }
 
 
-u8 send_consume_mesaage(void)
+u8 send_consume_mesaage(u8 ic_flag, u8 finish_flag)
 {
 
     u16 len;
     u8 msg[200]={0}; //信令内容
-    LOGD("定时发送扣费信息.");
-
-    create_consume_message(msg, sizeof(msg), 0);
-    LOGD("message:%s", msg);
+    
+    create_consume_message(msg, sizeof(msg), ic_flag, finish_flag);
+    LOGD("发送扣费信息:%s", msg);
 
     MQTTString top = MQTTString_initializer;
     top.cstring = TOPIC_PUB;
@@ -485,40 +518,41 @@ u8 send_consume_mesaage(void)
         //USART3_RX_STA=0;
     }else if (sim800c_send_cmd(send_cmd,"ERROR",200)==0){
         //发送失败，连接可能断开
-        LOGE("定时发送扣费信息失败.");
+        LOGE("发送扣费信息失败.");
         return FALSE;
     }
 
 }
 
 
-//发送结束扣费信息
-u8 send_finish_consume_mesaage(void)
+
+u8 deal_app_cousume_command(void)
+
 {
-
-    u16 len;
-    u8 msg[200]={0}; //信令内容
-    LOGD("发送结束扣费信息.");
-
-    create_consume_message(msg, sizeof(msg), 1);//结束标志位
-    LOGD("message:%s", msg);
-
-    MQTTString top = MQTTString_initializer;
-    top.cstring = TOPIC_PUB;
-    len = MQTTSerialize_publish((unsigned char*)mqtt_msg, sizeof(mqtt_msg), 0 ,0, 0, 0, top, msg, strlen(msg));
-    sprintf((char*)send_cmd, "AT+CIPSEND=%d", len);//要发送的数据长度
-    if(sim800c_send_cmd(send_cmd,">",200)==0)//发送数据
+    if (deal_start_app_consume(mqtt_msg, sizeof(mqtt_msg)) == TRUE)
     {
-        u3_printf_hex(mqtt_msg, len);
-        delay_ms(200);                  //必须加延时
-        //USART3_RX_STA=0;
-    }else if (sim800c_send_cmd(send_cmd,"ERROR",200)==0){
-        //发送失败，连接可能断开
-        LOGE("发送结束扣费信息失败.");
-        return FALSE;
+        u16 len;
+        u8 msg[200]={0}; //信令内容
+        create_app_consume_response(msg, sizeof(msg), 1);//返回成功
+        LOGD("发送app消费请求响应:%s", msg);
+
+        MQTTString top = MQTTString_initializer;
+        top.cstring = TOPIC_PUB;
+        len = MQTTSerialize_publish((unsigned char*)mqtt_msg, sizeof(mqtt_msg), 0 ,0, 0, 0, top, msg, strlen(msg));
+        sprintf((char*)send_cmd, "AT+CIPSEND=%d", len);//要发送的数据长度
+        if(sim800c_send_cmd(send_cmd,">",200)==0)//发送数据
+        {
+           u3_printf_hex(mqtt_msg, len);
+           delay_ms(200);//必须加延时
+           return TRUE;
+        }else if (sim800c_send_cmd(send_cmd,"ERROR",200)==0){
+           //发送失败，连接可能断开
+           LOGE("发送app消费请求响应失败.");
+           return FALSE;
+        }
     }
 
+    return FALSE;
 }
-
 
 

@@ -22,6 +22,7 @@ u16 g_ICCard_Value = 0;
 u8 g_state = INIT;
 
 char g_orderNo[24] = {0};
+u16 g_maxMoney = 0;
 u8 g_serverCardNo[10] = {0,0,0,0,0,0,0,0,0,0};
 
 u16 g_consume_time = 0;

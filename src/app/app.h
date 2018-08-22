@@ -18,10 +18,13 @@ u8 scan_for_card(void);
 u8 card_runing(void);
 
 
+//读取IC卡数据
+//返回值：TRUE-读取程         FALSE- 读取失败
+u8 read_card(void);
+
+
 //写入IC卡服务器绑定ID 
 u8 ic_wrtie_server_id(void);
-
-
 
 
 //连接阿里云服务器
@@ -43,10 +46,11 @@ u8 parse_mqtt_message(void);
 u8 send_start_consume_mesaage(void);
 
 //发送扣费信息
-u8 send_consume_mesaage(void);
+//ic_flag标志 1-IC卡消费， 2-app消费
+//finish_flag标志 1-结束消费， 2-正在消费
+u8 send_consume_mesaage(u8 ic_flag, u8 finish_flag);
 
-//发送结束扣费信息
-u8 send_finish_consume_mesaage(void);
-
+//处理服务端指令6，app消费请求
+u8 deal_app_cousume_command(void);
 
 #endif

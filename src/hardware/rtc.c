@@ -76,27 +76,25 @@ void RTC_IRQHandler(void)
         RTC_Get();//更新时间
 
         if (g_state == IC_CONSUME){
-            g_Digitron[7] = g_ICCard_Value%10;
-            g_Digitron[6] = (g_ICCard_Value/10)%10;
-            g_Digitron[5] = (g_ICCard_Value/100)%10;
-            g_Digitron[4] = (g_ICCard_Value/1000)%10;
-            g_Digitron[3] = g_ICCard_Value/10000;
-            g_Digitron[2] = 10;  //不进行显示
-            g_Digitron[1] = 10;
-            g_Digitron[0] = 10;
+            display(g_ICCard_Value);
         }
-        
 
-        //显示温度
         cnt ++;
         if(cnt >= g_chargRate)
         {
             cnt = 0 ;
-            if (g_state == IC_CONSUME)
+            if (g_state == IC_CONSUME || g_state == APP_CONSUME)
             {
-                //按频率进行指定扣费
-                g_ICCard_Value = g_ICCard_Value - g_moneyRate;
                 g_consume_time++;
+                //按频率进行指定扣费
+                if (g_ICCard_Value > g_moneyRate){
+                    g_ICCard_Value = g_ICCard_Value - g_moneyRate;
+                }
+                else
+                {
+                    //费用扣完
+                    g_ICCard_Value = 0;
+                }
             }
         }
 

@@ -3,7 +3,7 @@
 //?????
 u8 DgNum;   //4? 0~3
 u8 g_Digitron[8]={8,8,8,8,8,8,8,8};//8
-u32 NumTab[]={0xc0,0xf9,0xa4,0xb0,0x99,0x92,0x82,0xf8,0x80,0x90,0xff};   //第十个值位为空
+u32 NumTab[]={0xc0,0xf9,0xa4,0xb0,0x99,0x92,0x82,0xf8,0x80,0x90,0xff};   //第十个值位为空,不显示
 
 u8 on_flag = 1;
 
@@ -161,12 +161,20 @@ void DPinit()
     GPIO_SetBits(GPIOB,GPIO_Pin_3);                       //CLR=1,???
 }
 
-void display(u8 disnum[8])
-{
-    u8 i;
-    for(i=0;i<8;i++)
-        g_Digitron[i]=disnum[i];
-}
 
+//数码管显示金额
+void display(u16 money)
+{
+    u8 i = 0;
+    for(;i<8; ++i)
+        g_Digitron[i] = 10;
+    g_Digitron[7] = money%10;
+    g_Digitron[6] = (money/10)%10;
+    g_Digitron[5] = (money/100)%10;
+    if(money/1000 != 0)
+        g_Digitron[4] = (money/1000)%10;
+    if (money/10000 != 0)
+        g_Digitron[3] = money/10000;
+}
 
 

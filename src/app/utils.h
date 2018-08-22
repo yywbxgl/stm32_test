@@ -67,6 +67,7 @@ extern u16 g_ICCard_Value;   //卡片余额
 #define M_orderNo  "orderNo"
 
 extern char g_orderNo[24];
+extern u16 g_maxMoney;
 extern u8 g_serverCardNo[10];
 
 
@@ -75,6 +76,11 @@ extern u8 g_serverCardNo[10];
 #define M_TIME     "time"
 #define M_MONEY    "money"
 
+
+
+//指令6
+#define M_MAX_MONEY "maxMoney"
+#define M_EXPIRE "expire"
 
 extern u16 g_consume_time;
 
@@ -86,7 +92,8 @@ enum{
     MQTT_OK,   //mqtt订阅成功  -> 等待IC卡
     WAIT_IC,   //等待IC卡
     ON_IC,     //检测到IC卡
-    IC_CONSUME,//开始消费
+    IC_CONSUME,  //IC卡开始消费
+    APP_CONSUME, // app开始消费
 };
 
 
