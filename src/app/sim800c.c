@@ -352,7 +352,29 @@ void sim800c_test(void)
 
 }
 
+//检测当前TCP连接是否正常
 
+u8 sim800c_tcp_check(void)
+{
+    //查询连接状态
+    USART3_RX_STA=0;
+    if (sim800c_send_cmd("AT+CIPSTATUS","OK",500) == 0)
+    {
+        if(strstr((const char*)USART3_RX_BUF,"CONNECT OK")){
+            LOGI("TCP连接正常.");
+            return TRUE;
+        }
+        else{
+            LOGE("TCP连接断开.");
+            return FALSE;
+        }
+    }
+    else
+    {
+        LOGE("SIM卡无应答.");
+        return FALSE;
+    }
+}
 
 
 

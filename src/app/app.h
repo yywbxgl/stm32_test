@@ -33,8 +33,12 @@ u8 connect_to_server(void);
 //订阅mqtt主题
 u8 subscribe_mqtt(void);
 
-//发送保活信息
+//发送保活信息，设备指令1
 u8 send_keep_alive_mesaage(void);
+
+//处理保活信息响应，服务器指令1
+u8 deal_keep_alive_mesaage_response(void);
+
 
 //查询服务器发送过来的消息
 u8 recv_mqtt_message(void);
@@ -52,5 +56,7 @@ u8 send_consume_mesaage(u8 ic_flag, u8 finish_flag);
 
 //处理服务端指令6，app消费请求
 u8 deal_app_cousume_command(void);
+
+
 
 #endif

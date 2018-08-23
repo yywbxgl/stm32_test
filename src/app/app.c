@@ -11,7 +11,6 @@
 #include <string.h>
 #include "utils.h"
 #include "message.h"
-#include <jansson.h>
 #include "MQTTPacket.h"
 #include "MQTTPublish.h"
 #include "digitron.h"
@@ -313,13 +312,13 @@ u8 subscribe_mqtt(void)
 
     len=mqtt_subscribe_message(mqtt_msg,TOPIC_SUB,1,1);//订阅test主题
     //printf("send len = %d\r\n", len);
-    LOGI("mqtt_subscribe... \r\n");
+    //LOGI("mqtt_subscribe... \r\n");
     PrintHex(mqtt_msg,len);
     sprintf((char*)send_cmd, "AT+CIPSEND=%d", len);//接收到的字节数
     if(sim800c_send_cmd(send_cmd,">",200)==0)//发送数据
     {
         u3_printf_hex(mqtt_msg, len);
-        delay_ms(1000);                 //必须加延时
+        delay_ms(500);                 //必须加延时
         //sim800c_send_cmd((u8*)0X1A,0,0);    //CTRL+Z,结束数据发送,启动一次传输
         LOGI("MQTT订阅主题成功.");
     }
@@ -377,12 +376,19 @@ u8 send_keep_alive_mesaage(void)
 }
 
 
+u8 deal_keep_alive_mesaage_response(void)
+{
+    return parse_keep_alive_response(mqtt_msg, sizeof(mqtt_msg));
+}
+
+
 u8 recv_mqtt_message(void)
 {
     //接收到一次数据了
     if(USART3_RX_STA&0X8000)
     {
-       LOGD("收到了数据=%x", USART3_RX_STA);
+       //LOGD("收到了数据[%x]=%s", USART3_RX_STA, USART3_RX_BUF);
+       LOGD("收到了数据[%x]", USART3_RX_STA);
        //PrintHex(USART3_RX_BUF, 100);
        //收到订阅消息
        if (USART3_RX_BUF[0] == 0x32){
@@ -479,7 +485,7 @@ u8 send_start_consume_mesaage(void)
             u8 ret_trade = parse_service_message_common(mqtt_msg, sizeof(mqtt_msg));
             if(2 == ret_trade)
             {
-                if(deal_start_consume_response(mqtt_msg, sizeof(mqtt_msg)) == TRUE)
+                if(parse_start_consume_response(mqtt_msg, sizeof(mqtt_msg)) == TRUE)
                 {
                     return TRUE;
                 }
@@ -512,26 +518,27 @@ u8 send_consume_mesaage(u8 ic_flag, u8 finish_flag)
     if(sim800c_send_cmd(send_cmd,">",200)==0)//发送数据
     {
         u3_printf_hex(mqtt_msg, len);
-        delay_ms(200);                  //必须加延时
+        delay_ms(500);                  //必须加延时
         //USART3_RX_STA=0;
+        return TRUE;
     }else if (sim800c_send_cmd(send_cmd,"ERROR",200)==0){
         //发送失败，连接可能断开
         LOGE("发送扣费信息失败.");
         return FALSE;
     }
 
+    return FALSE;
 }
 
 
 
 u8 deal_app_cousume_command(void)
-
 {
-    if (deal_start_app_consume(mqtt_msg, sizeof(mqtt_msg)) == TRUE)
+    if (parse_start_app_consume_message(mqtt_msg, sizeof(mqtt_msg)) == TRUE)
     {
         u16 len;
         u8 msg[200]={0}; //信令内容
-        create_app_consume_response(msg, sizeof(msg), 1);//返回成功
+        create_start_app_consume_response(msg, sizeof(msg), 1);//返回成功
         LOGD("发送app消费请求响应:%s", msg);
 
         MQTTString top = MQTTString_initializer;
@@ -541,7 +548,7 @@ u8 deal_app_cousume_command(void)
         if(sim800c_send_cmd(send_cmd,">",200)==0)//发送数据
         {
            u3_printf_hex(mqtt_msg, len);
-           delay_ms(200);//必须加延时
+           delay_ms(500);//必须加延时
            return TRUE;
         }else if (sim800c_send_cmd(send_cmd,"ERROR",200)==0){
            //发送失败，连接可能断开

@@ -18,6 +18,9 @@ u8 sim800c_gsminfo_show(void);	         //显示GSM模块信息
 void ntp_update(void);               //网络同步时间
 void sim800c_test(void);			 //sim800c主测试函数
 
+
+u8 sim800c_tcp_check(void);			 //检测当前TCP连接是否正常
+
 #endif
 
 

@@ -8,7 +8,7 @@ char g_device_code[24] = { 0};
 //指令1  字段值初始化
 u8 g_disable = 0;
 u8 g_abnormal = 0;
-u8 g_heart = 5;
+u8 g_heart = 30;
 u8 g_offLine = 1;
 char g_pwd[24] = "11";
 u8 g_chargRate = 1;

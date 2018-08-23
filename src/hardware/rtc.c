@@ -75,7 +75,7 @@ void RTC_IRQHandler(void)
     {
         RTC_Get();//更新时间
 
-        if (g_state == IC_CONSUME){
+        if (g_state == IC_CONSUME|| g_state == APP_CONSUME){
             display(g_ICCard_Value);
         }
 

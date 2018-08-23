@@ -14,14 +14,11 @@
 #include "logging.h"
 #include "utils.h"
 #include <string.h>
-#include <jansson.h>
 #include <stdlib.h>
 #include "app.h"
 #include "sim800c.h"
 #include "MQTTPacket.h"
 #include "MQTTPublish.h"
-
-
 
 
 int main(void)
@@ -58,7 +55,7 @@ int main(void)
             setOnFlag();
             if (subscribe_mqtt() == TRUE){
                 g_state = MQTT_OK;
-            }else if ( subscribe_mqtt() == FALSE){
+            }else if (subscribe_mqtt() == FALSE){
                 g_state = INIT; 
             }
         }
@@ -75,24 +72,41 @@ int main(void)
         }
         else if(g_state == WAIT_IC){
             setOffFlag(); //关闭数码数码管，等待IC卡、
-            //查询接收消息
-            if (recv_mqtt_message() == TRUE){ 
+            
+            //每隔5秒检测一次网络状况
+            if (time_t % (5*100) == 0)
+            {
+                //网络断开重新连接
+                if(sim800c_tcp_check() == FALSE){
+                    g_state = INIT;
+                    continue;
+                }
+            }
+
+            //处理服务器消息
+            if (recv_mqtt_message() == TRUE)
+            { 
                 u8 trade = parse_mqtt_message();
-                if (trade == 1){
-                    //处理保活信令
-                    ;
-                }else if (trade == 6){
+                if (trade == 1)
+                {
+                    deal_keep_alive_mesaage_response();//处理保活信令
+                }
+                else if (trade == 6)
+                {
                     //处理扫描消费信令
-                    if( deal_app_cousume_command() == TRUE);{
+                    if(deal_app_cousume_command() == TRUE)
+                    {
                         g_ICCard_Value = g_maxMoney;
                         display(g_ICCard_Value);
                         g_state = APP_CONSUME;
                         g_consume_time = 0;  //开始计费
                         DCF_Set();           //打开电磁阀
+                        continue; 
                     }
-                }else if (trade == 0){
-                    //处理主动上报保活信令
-                    ;
+                }
+                else if (trade == 0)
+                {
+                    send_keep_alive_mesaage();
                 }
             }
 
@@ -110,7 +124,6 @@ int main(void)
                     g_state = TCP_OK;
                 }
             }
-
         }
         else if(g_state == ON_IC){
             memset(g_Digitron, ON_IC, sizeof(g_Digitron));
@@ -132,6 +145,18 @@ int main(void)
         }
         else if(g_state == IC_CONSUME){
             setOnFlag();  //打开数码管，显示卡内余额
+
+            //每隔5秒检测一次网络状况
+            if (time_t % (5*100) == 0)
+            {
+                //网络断开??
+                if(sim800c_tcp_check() == FALSE){
+                    ;
+                    //g_state = INIT;
+                    //continue;
+                }
+            }
+            
             if (card_runing() == FALSE)
             {
                //结束前发送一个结束信令
@@ -164,15 +189,38 @@ int main(void)
                send_consume_mesaage(1, 2);
             }
 
-            recv_mqtt_message();
+            //处理服务端指令8，结束消费信令
+            if (recv_mqtt_message() == TRUE)
+            {
+                u8 trade = parse_mqtt_message();
+                if(trade == 6)
+                {
+                    //当前正在消费，扫码消费返回失败
+                    ;
+                }
+            }
+
         }
         else if(g_state == APP_CONSUME){
             setOnFlag();  //打开数码管，显示卡内余额
+
+            //每隔5秒检测一次网络状况
+            if (time_t % (5*100) == 0)
+            {
+                //网络断开??
+                if(sim800c_tcp_check() == FALSE){
+                    ;
+                    //g_state = INIT;
+                    //continue;
+                }
+            }
+
             //每隔g_logRate发送一消费信息
             if(time_t % (g_logRate*100) == 0)
             {
                 send_consume_mesaage(2, 2);
             }
+
 
             if (g_ICCard_Value == 0)
             {
