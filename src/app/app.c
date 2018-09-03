@@ -29,7 +29,7 @@ u8 scan_for_card(void)
     u8 DefaultKey[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};  //todo:Ê¹ÓÃg_pwd×ª»»
     status = Request(RF_CMD_REQUEST_ALL);       //Ñ°¿¨
     if(status != FM1702_OK){
-        LOGD("Î´¼ì²âµ½¿¨Æ¬");
+        //LOGD("Î´¼ì²âµ½¿¨Æ¬");
         return FALSE;
     }
 
@@ -127,7 +127,7 @@ u8 read_card(void)
     u8 status;          //¶ÁÐ´¿¨×´Ì¬·µ»Ø
     u8 buf[16]= {0};    //¶ÁÐ´¿¨»º³åbuff
 
-    LOGI("¿¨Æ¬¼ì²â---");
+    //LOGD("¿¨Æ¬¼ì²â---");
     status=MIF_READ(buf,28); //¶Á¿¨£¬¶ÁÈ¡7ÉÈÇø0¿éÊý¾Ýµ½buffer[0]-buffer[15]
     if(status != FM1702_OK)
     {
