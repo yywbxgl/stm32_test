@@ -9,6 +9,8 @@
 #include "sys.h"
 
 
+void main_loop(void);
+
 //ºÏ≤‚ICø®
 //∑µªÿ÷µ£∫TRUE-ºÏ≤‚µΩø®∆¨          FALSE- Œ¥ºÏ≤‚µΩø®∆¨
 u8 scan_for_card(void);
