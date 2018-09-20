@@ -163,7 +163,7 @@ void DPinit()
 
 
 //数码管显示金额
-void display(u16 money)
+void display(u32 money)
 {
     u8 i = 0;
     for(;i<8; ++i)
@@ -174,7 +174,13 @@ void display(u16 money)
     if(money/1000 != 0)
         g_Digitron[4] = (money/1000)%10;
     if (money/10000 != 0)
-        g_Digitron[3] = money/10000;
+        g_Digitron[3] = (money/10000)%10;
+    if(money/100000 != 0)
+        g_Digitron[2] = (money/100000)%10;
+    if (money/1000000 != 0)
+        g_Digitron[1] = (money/1000000)%10;
+    if (money/10000000 != 0)
+        g_Digitron[0] = money/10000000;
 }
 
 

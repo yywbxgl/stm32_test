@@ -136,37 +136,44 @@ void create_outline_consume_message(u8 *outbuf, u16 len)
 
 
 //生成指令6，app消费请求响应,ok_flag为1时返回code成功
-void create_start_app_consume_response(u8 *outbuf, u16 len, u8 ok_flag)
+void create_start_app_consume_response(u8 *outbuf, u16 len, s8 ok_flag, char* orderNo)
 {
-   char* out;
-   json_t* message = json_object();
-   json_t* param = json_object();
-   memset(outbuf, 0 , len);
+    char* out;
+    json_t* message = json_object();
+    json_t* param = json_object();
+    memset(outbuf, 0 , len);
 
+    if ( -1 == ok_flag)
+    {
+        json_object_set_new(param, M_orderNo, json_string(orderNo));
+    }
+    else
+    {
+        json_object_set_new(param, M_orderNo, json_string(g_orderNo));
+    }
 
-   json_object_set_new(param, M_orderNo, json_string(g_orderNo));
-   json_object_set_new(param, M_CODE, json_integer(ok_flag));
+    json_object_set_new(param, M_CODE, json_integer(ok_flag));
 
-   json_object_set_new(message, M_TRADE, json_string("6"));
-   json_object_set_new(message, M_DATA, param);
-   json_object_set_new(message, M_VERSION, json_string(M_VERSION_VALUE));
-   json_object_set_new(message, M_CODE, json_integer(1));
-   json_object_set_new(message, M_DEVICECODE, json_string(g_device_code));
-   json_object_set_new(message, M_ERROR, json_string(""));
+    json_object_set_new(message, M_TRADE, json_string("6"));
+    json_object_set_new(message, M_DATA, param);
+    json_object_set_new(message, M_VERSION, json_string(M_VERSION_VALUE));
+    json_object_set_new(message, M_CODE, json_integer(ok_flag));
+    json_object_set_new(message, M_DEVICECODE, json_string(g_device_code));
+    json_object_set_new(message, M_ERROR, json_string(""));
 
-   out = json_dumps(message, 0);
-   strncpy((char*)outbuf, out, len);
+    out = json_dumps(message, 0);
+    strncpy((char*)outbuf, out, len);
 
-   free(out);
-   json_decref(param);
-   json_decref(message);
+    free(out);
+    json_decref(param);
+    json_decref(message);
 }
 
 //解析收到的服务器消息，协议公共部分，
 //返回0表示失败，返回其他值表示成功，其他值为trade命令号
-u8 parse_service_message_common(u8 *outbuf, u16 len)
+s8 parse_service_message_common(u8 *outbuf, u16 len)
 {
-    u8 ret = 0;
+    s8 ret = -1;
     json_t* message = NULL;
     //json_t* data = NULL;
     json_t* trade = NULL;
@@ -312,7 +319,7 @@ u8 parse_start_consume_response(u8 *outbuf, u16 len)
     }else {
         g_ICCard_Value = json_integer_value(card_money);
         display(g_ICCard_Value);
-        LOGI("服务端返回卡内余额：%d", g_ICCard_Value);
+        LOGI("服务端返回卡内余额：%ld", g_ICCard_Value);
     }
 
     binging = json_object_get(param, M_bingding);
@@ -474,4 +481,37 @@ u8 parse_start_app_consume_message(u8 *outbuf, u16 len)
 }
 
 
+//处理服务器指令8，结束app消费请求
+u8 parse_finish_app_consume_message(u8 *outbuf, u16 len)
+{
+    json_t* message = NULL;
+    json_t* data = NULL;
+    json_error_t error;
+    message = json_loads((char*)outbuf, 0, &error);
+    if(!message){
+        LOGE("Json 数据格式错误[message]");
+        json_decref(message);
+        return FALSE;
+    }
+
+    data = json_object_get(message, M_DATA);
+    if (!data || !json_is_object(data)){
+        LOGE("Json 数据格式错误[data]");
+        json_decref(message);
+        return FALSE;
+    }
+
+    json_t* ordNo = json_object_get(data, M_orderNo);
+    if(!ordNo || !json_is_string(ordNo)){
+        LOGE("Json 数据格式错误[M_orderNo]");
+        json_decref(message);
+        return FALSE;
+    }else{
+        LOGI("结束app消费订单:%s", json_string_value(ordNo));
+        if (strncmp(g_orderNo, json_string_value(ordNo), strlen(json_string_value(ordNo))) == 0)
+            return TRUE;
+    }
+
+    return FALSE;
+}
 

@@ -58,7 +58,7 @@ extern u8 g_logRate ;
 #define M_CARDNO    "cardNo"
 //指令2字段值
 extern char g_card_id[24];   //当前卡片ID, 最多15位
-extern u16 g_ICCard_Value;   //卡片余额
+extern u32 g_ICCard_Value;   //卡片余额
 
 
 #define M_switched "switched"
@@ -66,8 +66,8 @@ extern u16 g_ICCard_Value;   //卡片余额
 #define M_serverCardNo "serverCardNo"
 #define M_orderNo  "orderNo"
 
-extern char g_orderNo[24];
-extern u16 g_maxMoney;
+extern char g_orderNo[12];
+extern u32 g_maxMoney;
 extern u8 g_serverCardNo[10];
 
 
@@ -94,6 +94,7 @@ enum{
     ON_IC,     //检测到IC卡
     IC_CONSUME,  //IC卡开始消费
     APP_CONSUME, // app开始消费
+    NOT_AUTH,
 };
 
 

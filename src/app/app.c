@@ -20,10 +20,13 @@
 #include "test.h"
 #include "dcf.h"
 #include "digitron.h"
+#include <jansson.h>
+#include <string.h>
 
 
 u8 mqtt_msg[400]={0}; //mqtt消息包
 u8 send_cmd[20]= {0};
+
 
 
 void main_loop(void)
@@ -35,8 +38,18 @@ void main_loop(void)
             memset(g_Digitron, INIT, sizeof(g_Digitron)); //打开数码数码管显示当前设备状态
             setOnFlag();
             if (connect_to_server() == TRUE){
-                g_state = TCP_OK;
+                char device_auth[24] = "868926036902861";
+                if (strncmp(g_device_code, device_auth, strlen(device_auth)) == 0)
+                    g_state = TCP_OK;
+                else{
+                    LOGE("设备未授权. 当前设备序列号为：%s", g_device_code);
+                    g_state = NOT_AUTH;
+                }
             }
+        }
+        else if (g_state == NOT_AUTH){
+            memset(g_Digitron, NOT_AUTH, sizeof(g_Digitron)); //打开数码数码管显示当前设备状态
+            setOnFlag();
         }
         else if(g_state == TCP_OK){
             memset(g_Digitron, TCP_OK, sizeof(g_Digitron)); //打开数码数码管显示当前设备状态
@@ -72,9 +85,9 @@ void main_loop(void)
             }
 
             //处理服务器消息
-            if (recv_mqtt_message() == TRUE)
+            s8 trade =  0;
+            if (recv_mqtt_message(&trade) == TRUE)
             { 
-                u8 trade = parse_mqtt_message();
                 if (trade == 1)
                 {
                     deal_keep_alive_mesaage_response();//处理保活信令
@@ -82,7 +95,7 @@ void main_loop(void)
                 else if (trade == 6)
                 {
                     //处理扫描消费信令
-                    if(deal_app_cousume_command() == TRUE)
+                    if(deal_app_cousume_command(1) == TRUE)
                     {
                         g_ICCard_Value = g_maxMoney;
                         display(g_ICCard_Value);
@@ -177,14 +190,13 @@ void main_loop(void)
                send_consume_mesaage(1, 2);
             }
 
-            //处理服务端指令8，结束消费信令
-            if (recv_mqtt_message() == TRUE)
+            s8 trade =  -1;
+            if (recv_mqtt_message(&trade) == TRUE)
             {
-                u8 trade = parse_mqtt_message();
+                //不允许app消费
                 if(trade == 6)
                 {
-                    //当前正在消费，扫码消费返回失败
-                    ;
+                    deal_app_cousume_command(-1);
                 }
             }
 
@@ -221,15 +233,21 @@ void main_loop(void)
             }
 
             //处理结束服务端指令8，结束消费信令
-            if (recv_mqtt_message() == TRUE)
+            s8 trade = -1;
+            if (recv_mqtt_message(&trade) == TRUE)
             {
-                u8 trade = parse_mqtt_message();
-                if(trade == 8)
+                if(trade == 8 && deal_command_app_finish() == TRUE)
                 {
                     send_consume_mesaage(2, 1);
                     g_state = WAIT_IC;
                     DCF_Reset();         //关闭电磁阀
                     g_consume_time = 0;  //结束计费
+                }
+
+                //不允许重复消费
+                if(trade == 6)
+                {
+                    deal_app_cousume_command(-1);
                 }
             }
             
@@ -289,15 +307,21 @@ u8 scan_for_card(void)
     }
     else
     {
-        g_ICCard_Value = (buf[0]<<8)|buf[1];  //读取卡内余额
+        int i=0;
+        g_ICCard_Value = 0;
+        for(; i<4; ++i){
+            g_ICCard_Value = g_ICCard_Value << 8;
+            g_ICCard_Value = g_ICCard_Value | buf[i];
+        }
+
         LOGI("扇区读取：");
         PrintHex(buf, sizeof(buf));
-        u8 i =0;
-        for(; i<9;++i){
-            g_serverCardNo[i]= buf[i+4];
+        i = 4;
+        for(; i< 13; ++i){
+            g_serverCardNo[i]= buf[i];
         }
         //memcpy(g_serverCardNo, buf[4] , sizeof(g_serverCardNo));//该接口有问题
-        LOGI("读卡数据成功，余额= %d", g_ICCard_Value);
+        LOGI("读卡数据成功，余额= %ld", g_ICCard_Value);
         LOGI("读卡数据成功，服务ID= %s", g_serverCardNo);
     }
 
@@ -309,7 +333,7 @@ u8 card_runing(void)
 {
     u8 status;          //读写卡状态返回
     u8 buf[16]= {0};    //读写卡缓冲buff
-    u16 now_card_value = 0 ; //当前卡片读取的余额
+    u32 now_card_value = 0 ; //当前卡片读取的余额
 
     status=MIF_READ(buf,28); //读卡，读取7扇区0块数据到buffer[0]-buffer[15]
     if(status != FM1702_OK)
@@ -320,16 +344,28 @@ u8 card_runing(void)
     }
     else
     {
-        now_card_value = (buf[0]<<8)|buf[1];  //读取卡内余额
+        now_card_value = 0; //读取卡内余额
+        int  i = 0;
+        for(; i<4; ++i){
+            now_card_value = now_card_value << 8;
+            now_card_value = now_card_value | buf[i];
+        }
     }
 
 
     //当卡片上的余额与实际余额不匹配时候，写入卡片数据
     if(now_card_value != g_ICCard_Value)
     {
-        LOGI("读卡数据成功，余额= %d", now_card_value);
-        buf[0]=g_ICCard_Value>>8;
-        buf[1]=g_ICCard_Value&0x00ff;	
+        //LOGI("读卡数据成功，余额= %ld", now_card_value);
+        LOGD("卡上余额=%d， 当前实际余额=%d, 写入卡片.", now_card_value, g_ICCard_Value);
+
+        int i =3;
+        u32 temp = g_ICCard_Value ;
+        for (; i>=0; --i){
+            buf[i] = temp & 0xff;
+            temp = temp >> 8;
+        }
+
         status=MIF_Write(buf,28);  //写卡，将buffer[0]-buffer[15]写入1扇区0块
         if(status != FM1702_OK)
         {
@@ -603,8 +639,9 @@ u8 deal_keep_alive_mesaage_response(void)
 }
 
 
-u8 recv_mqtt_message(void)
+u8 recv_mqtt_message(s8* trade)
 {
+    *trade = -1;
     //接收到一次数据了
     if(USART3_RX_STA&0X8000)
     {
@@ -635,6 +672,8 @@ u8 recv_mqtt_message(void)
                u3_printf_hex(ack, sizeof(ack));
                delay_ms(200);
            }
+
+           *trade = parse_service_message_common(mqtt_msg, sizeof(mqtt_msg));
            return TRUE;
        }
        else{
@@ -665,11 +704,7 @@ u8 recv_mqtt_message(void)
 }
 
 
-u8 parse_mqtt_message(void)
-{
-    u8 ret_trade = parse_service_message_common(mqtt_msg, sizeof(mqtt_msg));
-    return ret_trade;
-}
+
 
 
 u8 send_start_consume_mesaage(void)
@@ -688,7 +723,7 @@ u8 send_start_consume_mesaage(void)
     if(sim800c_send_cmd(send_cmd,">",200)==0)//发送数据
     {
        u3_printf_hex(mqtt_msg, len);
-       delay_ms(200);                  //必须加延时
+       delay_ms(500);                  //必须加延时
        //USART3_RX_STA=0;
     }else if (sim800c_send_cmd(send_cmd,"ERROR",200)==0){
        //发送失败，连接可能断开
@@ -701,10 +736,10 @@ u8 send_start_consume_mesaage(void)
     u16 t=500;
     while(t--)
     {
-        if (recv_mqtt_message() == TRUE)
+        s8 trade = 0;
+        if (recv_mqtt_message(&trade) == TRUE)
         {
-            u8 ret_trade = parse_service_message_common(mqtt_msg, sizeof(mqtt_msg));
-            if(2 == ret_trade)
+            if(2 == trade)
             {
                 if(parse_start_consume_response(mqtt_msg, sizeof(mqtt_msg)) == TRUE)
                 {
@@ -723,6 +758,9 @@ u8 send_start_consume_mesaage(void)
 }
 
 
+//发送扣费信息
+//ic_flag标志 1-IC卡消费， 2-app消费
+//finish_flag标志 1-结束消费， 2-正在消费
 u8 send_consume_mesaage(u8 ic_flag, u8 finish_flag)
 {
 
@@ -753,32 +791,75 @@ u8 send_consume_mesaage(u8 ic_flag, u8 finish_flag)
 
 
 
-u8 deal_app_cousume_command(void)
+u8 deal_app_cousume_command(s8 ok_flag)
 {
-    if (parse_start_app_consume_message(mqtt_msg, sizeof(mqtt_msg)) == TRUE)
+    char temp_orderNo[12] = {0};
+    if (1 == ok_flag)
     {
-        u16 len;
-        u8 msg[200]={0}; //信令内容
-        create_start_app_consume_response(msg, sizeof(msg), 1);//返回成功
-        LOGD("发送app消费请求响应:%s", msg);
-
-        MQTTString top = MQTTString_initializer;
-        top.cstring = TOPIC_PUB;
-        len = MQTTSerialize_publish((unsigned char*)mqtt_msg, sizeof(mqtt_msg), 0 ,0, 0, 0, top, msg, strlen(msg));
-        sprintf((char*)send_cmd, "AT+CIPSEND=%d", len);//要发送的数据长度
-        if(sim800c_send_cmd(send_cmd,">",200)==0)//发送数据
-        {
-           u3_printf_hex(mqtt_msg, len);
-           delay_ms(500);//必须加延时
-           return TRUE;
-        }else if (sim800c_send_cmd(send_cmd,"ERROR",200)==0){
-           //发送失败，连接可能断开
-           LOGE("发送app消费请求响应失败.");
-           return FALSE;
+        if (parse_start_app_consume_message(mqtt_msg, sizeof(mqtt_msg)) == FALSE)
+            return FALSE;
+    }
+    else if (-1 == ok_flag)
+    {
+        json_t* message = NULL;
+        json_t* data = NULL;
+        json_error_t error;
+        message = json_loads((char*)mqtt_msg, 0, &error);
+        if(!message){
+            LOGE("Json 数据格式错误[message]");
+            json_decref(message);
+            return FALSE;
         }
+
+        data = json_object_get(message, M_DATA);
+        if (!data || !json_is_object(data)){
+            LOGE("Json 数据格式错误[data]");
+            json_decref(message);
+            return FALSE;
+        }
+
+        json_t* ordNo = json_object_get(data, M_orderNo);
+        if(!ordNo || !json_is_string(ordNo)){
+            LOGE("Json 数据格式错误[M_orderNo]");
+            json_decref(message);
+            return FALSE;
+        }else{
+            LOGI("当前app消费订单:%s", json_string_value(ordNo));
+            strncpy(temp_orderNo, json_string_value(ordNo), sizeof(temp_orderNo));
+        }
+
+        json_decref(message);
+        LOGE("当前设备正在消费，不允许再次消费.");
     }
 
-    return FALSE;
+    u16 len;
+    u8 msg[200]={0}; //信令内容
+    create_start_app_consume_response(msg, sizeof(msg), ok_flag, temp_orderNo);//返回成功
+    LOGD("发送app消费请求响应:%s", msg);
+
+    MQTTString top = MQTTString_initializer;
+    top.cstring = TOPIC_PUB;
+    len = MQTTSerialize_publish((unsigned char*)mqtt_msg, sizeof(mqtt_msg), 0 ,0, 0, 0, top, msg, strlen(msg));
+    sprintf((char*)send_cmd, "AT+CIPSEND=%d", len);//要发送的数据长度
+    if(sim800c_send_cmd(send_cmd,">",200)==0)//发送数据
+    {
+       u3_printf_hex(mqtt_msg, len);
+       delay_ms(500);//必须加延时
+       return TRUE;
+    }else {
+       //发送失败，连接可能断开
+       LOGE("发送app消费请求响应失败.");
+       return FALSE;
+    }
+
+}
+
+
+
+//处理服务端指令8，app消费结束命令
+u8 deal_command_app_finish(void)
+{
+    return parse_finish_app_consume_message(mqtt_msg, sizeof(mqtt_msg));
 }
 
 

@@ -14,7 +14,7 @@
 
 //extern char* g_card_id;
 
-extern u16 g_ICCard_Value;
+extern u32 g_ICCard_Value;
 extern u8 ic_on_flag = 0;
 
 

@@ -43,10 +43,9 @@ u8 deal_keep_alive_mesaage_response(void);
 
 
 //查询服务器发送过来的消息
-u8 recv_mqtt_message(void);
+u8 recv_mqtt_message(s8* trade);
 
-//解析服务器发送过来的消息
-u8 parse_mqtt_message(void);
+
 
 //发送开始消费信令
 u8 send_start_consume_mesaage(void);
@@ -57,8 +56,12 @@ u8 send_start_consume_mesaage(void);
 u8 send_consume_mesaage(u8 ic_flag, u8 finish_flag);
 
 //处理服务端指令6，app消费请求
-u8 deal_app_cousume_command(void);
+// ok_flag 1 成功开始消费； -1 开始消费失败
+u8 deal_app_cousume_command(s8 ok_flag);
 
+
+//处理服务端指令8，app消费结束命令
+u8 deal_command_app_finish(void);
 
 
 #endif

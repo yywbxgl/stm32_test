@@ -18,7 +18,7 @@ void setOnFlag(void);
 void setOffFlag(void);
 
 //数码管显示金额
-void display(u16 money);
+void display(u32 money);
 
 
 #endif

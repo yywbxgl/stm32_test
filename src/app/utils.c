@@ -18,14 +18,15 @@ u8 g_logRate = 1;
 
 //设备当前业务状态初始化
 char g_card_id[24] = "no card";
-u16 g_ICCard_Value = 0;
+u32 g_ICCard_Value = 0;
 u8 g_state = INIT;
 
-char g_orderNo[24] = {0};
-u16 g_maxMoney = 0;
+char g_orderNo[12] = {0};
+u32 g_maxMoney = 0;
 u8 g_serverCardNo[10] = {0,0,0,0,0,0,0,0,0,0};
 
 u16 g_consume_time = 0;
+
 
 void PrintHex(u8 *buf,u16 len)
 {
