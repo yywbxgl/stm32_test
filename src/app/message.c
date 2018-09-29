@@ -332,7 +332,7 @@ u8 parse_start_consume_response(u8 *outbuf, u16 len)
         //数码管显示服务ID
         //printf("\r\n------\r\n");
         u8 i =0;
-        for(;i<9;++i){
+        for(;i<8;++i){
             g_Digitron[i] = g_serverCardNo[i] - '0'; //数码管显示数字
         //    printf("%c", g_serverCardNo[i]);
         }
@@ -509,9 +509,14 @@ u8 parse_finish_app_consume_message(u8 *outbuf, u16 len)
     }else{
         LOGI("结束app消费订单:%s", json_string_value(ordNo));
         if (strncmp(g_orderNo, json_string_value(ordNo), strlen(json_string_value(ordNo))) == 0)
+        {
+            json_decref(message);
             return TRUE;
+        }
+           
     }
 
+    json_decref(message);
     return FALSE;
 }
 

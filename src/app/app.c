@@ -316,9 +316,9 @@ u8 scan_for_card(void)
 
         LOGI("扇区读取：");
         PrintHex(buf, sizeof(buf));
-        i = 4;
-        for(; i< 13; ++i){
-            g_serverCardNo[i]= buf[i];
+        i = 0;
+        for(; i< 8; ++i){
+            g_serverCardNo[i]= buf[i+4];
         }
         //memcpy(g_serverCardNo, buf[4] , sizeof(g_serverCardNo));//该接口有问题
         LOGI("读卡数据成功，余额= %ld", g_ICCard_Value);
@@ -413,7 +413,7 @@ u8 ic_wrtie_server_id(void)
 
     //写入卡片服务ID数据
     u8 i =0;
-    for(; i<9; ++i){
+    for(; i<8; ++i){
         buf[i+4]= g_serverCardNo[i];
     }
     status=MIF_Write(buf,28);  //写卡，将buffer[0]-buffer[15]写入1扇区0块
@@ -845,6 +845,7 @@ u8 deal_app_cousume_command(s8 ok_flag)
     {
        u3_printf_hex(mqtt_msg, len);
        delay_ms(500);//必须加延时
+
        return TRUE;
     }else {
        //发送失败，连接可能断开
