@@ -39,7 +39,10 @@ void main_loop(void)
             setOnFlag();
             if (connect_to_server() == TRUE){
                 char device_auth[24] = "868926036902861";
+                char  device_auth_2[24] = "869627039319199";
                 if (strncmp(g_device_code, device_auth, strlen(device_auth)) == 0)
+                    g_state = TCP_OK;
+                else if (strncmp(g_device_code, device_auth_2, strlen(device_auth_2)) == 0)
                     g_state = TCP_OK;
                 else{
                     LOGE("设备未授权. 当前设备序列号为：%s", g_device_code);
