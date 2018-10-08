@@ -24,7 +24,7 @@
 #include <string.h>
 
 
-u8 mqtt_msg[400]={0}; //mqttæ¶ˆæ¯åŒ…
+u8 mqtt_msg[400]={0}; //mqttÏûÏ¢°ü
 u8 send_cmd[20]= {0};
 
 
@@ -35,27 +35,24 @@ void main_loop(void)
     while(1)
     {
         if(g_state == INIT){
-            memset(g_Digitron, INIT, sizeof(g_Digitron)); //æ‰“å¼€æ•°ç æ•°ç ç®¡æ˜¾ç¤ºå½“å‰è®¾å¤‡çŠ¶æ€
+            memset(g_Digitron, INIT, sizeof(g_Digitron)); //´ò¿ªÊıÂëÊıÂë¹ÜÏÔÊ¾µ±Ç°Éè±¸×´Ì¬
             setOnFlag();
             if (connect_to_server() == TRUE){
                 char device_auth[24] = "868926036902861";
-                char  device_auth_2[24] = "869627039319199";
                 if (strncmp(g_device_code, device_auth, strlen(device_auth)) == 0)
                     g_state = TCP_OK;
-                else if (strncmp(g_device_code, device_auth_2, strlen(device_auth_2)) == 0)
-                    g_state = TCP_OK;
                 else{
-                    LOGE("è®¾å¤‡æœªæˆæƒ. å½“å‰è®¾å¤‡åºåˆ—å·ä¸ºï¼š%s", g_device_code);
+                    LOGE("Éè±¸Î´ÊÚÈ¨. µ±Ç°Éè±¸ĞòÁĞºÅÎª£º%s", g_device_code);
                     g_state = NOT_AUTH;
                 }
             }
         }
         else if (g_state == NOT_AUTH){
-            memset(g_Digitron, NOT_AUTH, sizeof(g_Digitron)); //æ‰“å¼€æ•°ç æ•°ç ç®¡æ˜¾ç¤ºå½“å‰è®¾å¤‡çŠ¶æ€
+            memset(g_Digitron, NOT_AUTH, sizeof(g_Digitron)); //´ò¿ªÊıÂëÊıÂë¹ÜÏÔÊ¾µ±Ç°Éè±¸×´Ì¬
             setOnFlag();
         }
         else if(g_state == TCP_OK){
-            memset(g_Digitron, TCP_OK, sizeof(g_Digitron)); //æ‰“å¼€æ•°ç æ•°ç ç®¡æ˜¾ç¤ºå½“å‰è®¾å¤‡çŠ¶æ€
+            memset(g_Digitron, TCP_OK, sizeof(g_Digitron)); //´ò¿ªÊıÂëÊıÂë¹ÜÏÔÊ¾µ±Ç°Éè±¸×´Ì¬
             setOnFlag();
             if (subscribe_mqtt() == TRUE){
                 g_state = MQTT_OK;
@@ -64,7 +61,7 @@ void main_loop(void)
             }
         }
         else if(g_state == MQTT_OK){
-            memset(g_Digitron, MQTT_OK, sizeof(g_Digitron)); //æ‰“å¼€æ•°ç æ•°ç ç®¡æ˜¾ç¤ºå½“å‰è®¾å¤‡çŠ¶æ€
+            memset(g_Digitron, MQTT_OK, sizeof(g_Digitron)); //´ò¿ªÊıÂëÊıÂë¹ÜÏÔÊ¾µ±Ç°Éè±¸×´Ì¬
             setOnFlag();
             USART3_RX_STA=0;
             if (send_keep_alive_mesaage() == TRUE){
@@ -75,36 +72,36 @@ void main_loop(void)
             }
         }
         else if(g_state == WAIT_IC){
-            setOffFlag(); //å…³é—­æ•°ç æ•°ç ç®¡ï¼Œç­‰å¾…ICå¡ã€
+            setOffFlag(); //¹Ø±ÕÊıÂëÊıÂë¹Ü£¬µÈ´ıIC¿¨¡¢
             
-            //æ¯éš”5ç§’æ£€æµ‹ä¸€æ¬¡ç½‘ç»œçŠ¶å†µ
+            //Ã¿¸ô5Ãë¼ì²âÒ»´ÎÍøÂç×´¿ö
             if (time_t % (5*100) == 0)
             {
-                //ç½‘ç»œæ–­å¼€é‡æ–°è¿æ¥
+                //ÍøÂç¶Ï¿ªÖØĞÂÁ¬½Ó
                 if(sim800c_tcp_check() == FALSE){
                     g_state = INIT;
                     continue;
                 }
             }
 
-            //å¤„ç†æœåŠ¡å™¨æ¶ˆæ¯
+            //´¦Àí·şÎñÆ÷ÏûÏ¢
             s8 trade =  0;
             if (recv_mqtt_message(&trade) == TRUE)
             { 
                 if (trade == 1)
                 {
-                    deal_keep_alive_mesaage_response();//å¤„ç†ä¿æ´»ä¿¡ä»¤
+                    deal_keep_alive_mesaage_response();//´¦Àí±£»îĞÅÁî
                 }
                 else if (trade == 6)
                 {
-                    //å¤„ç†æ‰«ææ¶ˆè´¹ä¿¡ä»¤
+                    //´¦ÀíÉ¨ÃèÏû·ÑĞÅÁî
                     if(deal_app_cousume_command(1) == TRUE)
                     {
                         g_ICCard_Value = g_maxMoney;
                         display(g_ICCard_Value);
                         g_state = APP_CONSUME;
-                        g_consume_time = 0;  //å¼€å§‹è®¡è´¹
-                        DCF_Set();           //æ‰“å¼€ç”µç£é˜€
+                        g_consume_time = 0;  //¿ªÊ¼¼Æ·Ñ
+                        DCF_Set();           //´ò¿ªµç´Å·§
                         continue; 
                     }
                 }
@@ -114,14 +111,14 @@ void main_loop(void)
                 }
             }
 
-            //ç­‰å¾…ICå¡
+            //µÈ´ıIC¿¨
             if (time_t % 20 == 0){
                 if (scan_for_card() == TRUE){
                     g_state = ON_IC;
                 }
             }
 
-            //æ¯éš”g_heartå‘é€ä¸€ä¸ªå¿ƒè·³
+            //Ã¿¸ôg_heart·¢ËÍÒ»¸öĞÄÌø
             if (time_t % (g_heart*100) == 0)
             {
                 if (send_keep_alive_mesaage() == FALSE){
@@ -131,15 +128,15 @@ void main_loop(void)
         }
         else if(g_state == ON_IC){
             memset(g_Digitron, ON_IC, sizeof(g_Digitron));
-            setOnFlag(); //æ‰“å¼€æ•°ç æ•°ç ç®¡æ˜¾ç¤ºå½“å‰è®¾å¤‡çŠ¶æ€
+            setOnFlag(); //´ò¿ªÊıÂëÊıÂë¹ÜÏÔÊ¾µ±Ç°Éè±¸×´Ì¬
             if(send_start_consume_mesaage() == TRUE){
-                //å‘é€å¼€å§‹æ¶ˆè´¹è¯·æ±‚ï¼Œç­‰å¾…å“åº”
-                LOGI("å¼€å§‹åˆ·å¡æ¶ˆè´¹ï¼");
+                //·¢ËÍ¿ªÊ¼Ïû·ÑÇëÇó£¬µÈ´ıÏìÓ¦
+                LOGI("¿ªÊ¼Ë¢¿¨Ïû·Ñ£¡");
                 g_state = IC_CONSUME;
-                g_consume_time = 0;  //å¼€å§‹è®¡è´¹
-                DCF_Set();           //æ‰“å¼€ç”µç£é˜€
+                g_consume_time = 0;  //¿ªÊ¼¼Æ·Ñ
+                DCF_Set();           //´ò¿ªµç´Å·§
             }else{
-                //ç­‰å¾…å¡ç‰‡ç§»èµ°ç½®ä½çŠ¶æ€
+                //µÈ´ı¿¨Æ¬ÒÆ×ßÖÃÎ»×´Ì¬
                 while(read_card() == TRUE)
                 {
                     delay_ms(100);
@@ -148,12 +145,12 @@ void main_loop(void)
             }
         }
         else if(g_state == IC_CONSUME){
-            setOnFlag();  //æ‰“å¼€æ•°ç ç®¡ï¼Œæ˜¾ç¤ºå¡å†…ä½™é¢
+            setOnFlag();  //´ò¿ªÊıÂë¹Ü£¬ÏÔÊ¾¿¨ÄÚÓà¶î
 
-            //æ¯éš”5ç§’æ£€æµ‹ä¸€æ¬¡ç½‘ç»œçŠ¶å†µ
+            //Ã¿¸ô5Ãë¼ì²âÒ»´ÎÍøÂç×´¿ö
             if (time_t % (5*100) == 0)
             {
-                //ç½‘ç»œæ–­å¼€??
+                //ÍøÂç¶Ï¿ª??
                 if(sim800c_tcp_check() == FALSE){
                     ;
                     //g_state = INIT;
@@ -163,22 +160,22 @@ void main_loop(void)
             
             if (card_runing() == FALSE)
             {
-               //ç»“æŸå‰å‘é€ä¸€ä¸ªç»“æŸä¿¡ä»¤
+               //½áÊøÇ°·¢ËÍÒ»¸ö½áÊøĞÅÁî
                send_consume_mesaage(1, 1);
                g_state = WAIT_IC;
-               DCF_Reset();         //å…³é—­ç”µç£é˜€
-               g_consume_time = 0;  //ç»“æŸè®¡è´¹
+               DCF_Reset();         //¹Ø±Õµç´Å·§
+               g_consume_time = 0;  //½áÊø¼Æ·Ñ
             }
 
             if (g_ICCard_Value == 0)
             {
-                LOGI("å½“å‰ä½™é¢ä¸è¶³");
-                //ç»“æŸå‰å‘é€ä¸€ä¸ªç»“æŸä¿¡ä»¤
+                LOGI("µ±Ç°Óà¶î²»×ã");
+                //½áÊøÇ°·¢ËÍÒ»¸ö½áÊøĞÅÁî
                 send_consume_mesaage(1, 1);
                 g_state = WAIT_IC;
-                DCF_Reset();         //å…³é—­ç”µç£é˜€
-                g_consume_time = 0;  //ç»“æŸè®¡è´¹
-                //ç­‰å¾…å¡ç‰‡ç§»èµ°ç½®ä½çŠ¶æ€
+                DCF_Reset();         //¹Ø±Õµç´Å·§
+                g_consume_time = 0;  //½áÊø¼Æ·Ñ
+                //µÈ´ı¿¨Æ¬ÒÆ×ßÖÃÎ»×´Ì¬
                 display(g_ICCard_Value);
                 while(read_card() == TRUE)
                 {
@@ -187,7 +184,7 @@ void main_loop(void)
                 g_state = WAIT_IC;
             }
 
-            //æ¯éš”g_logRateå‘é€ä¸€æ¶ˆè´¹ä¿¡æ¯
+            //Ã¿¸ôg_logRate·¢ËÍÒ»Ïû·ÑĞÅÏ¢
             if(time_t % (g_logRate*100) == 0)
             {
                send_consume_mesaage(1, 2);
@@ -196,7 +193,7 @@ void main_loop(void)
             s8 trade =  -1;
             if (recv_mqtt_message(&trade) == TRUE)
             {
-                //ä¸å…è®¸appæ¶ˆè´¹
+                //²»ÔÊĞíappÏû·Ñ
                 if(trade == 6)
                 {
                     deal_app_cousume_command(-1);
@@ -205,12 +202,12 @@ void main_loop(void)
 
         }
         else if(g_state == APP_CONSUME){
-            setOnFlag();  //æ‰“å¼€æ•°ç ç®¡ï¼Œæ˜¾ç¤ºå¡å†…ä½™é¢
+            setOnFlag();  //´ò¿ªÊıÂë¹Ü£¬ÏÔÊ¾¿¨ÄÚÓà¶î
 
-            //æ¯éš”5ç§’æ£€æµ‹ä¸€æ¬¡ç½‘ç»œçŠ¶å†µ
+            //Ã¿¸ô5Ãë¼ì²âÒ»´ÎÍøÂç×´¿ö
             if (time_t % (5*100) == 0)
             {
-                //ç½‘ç»œæ–­å¼€??
+                //ÍøÂç¶Ï¿ª??
                 if(sim800c_tcp_check() == FALSE){
                     ;
                     //g_state = INIT;
@@ -218,7 +215,7 @@ void main_loop(void)
                 }
             }
 
-            //æ¯éš”g_logRateå‘é€ä¸€æ¶ˆè´¹ä¿¡æ¯
+            //Ã¿¸ôg_logRate·¢ËÍÒ»Ïû·ÑĞÅÏ¢
             if(time_t % (g_logRate*100) == 0)
             {
                 send_consume_mesaage(2, 2);
@@ -227,15 +224,15 @@ void main_loop(void)
 
             if (g_ICCard_Value == 0)
             {
-                LOGI("å½“å‰ä½™é¢ä¸º0");
-                send_consume_mesaage(2, 1);//å…³é—­å‰å‘é€ç»“æŸæ¶ˆè´¹ä¿¡ä»¤
+                LOGI("µ±Ç°Óà¶îÎª0");
+                send_consume_mesaage(2, 1);//¹Ø±ÕÇ°·¢ËÍ½áÊøÏû·ÑĞÅÁî
                 g_state = WAIT_IC;
-                DCF_Reset();         //å…³é—­ç”µç£é˜€
-                g_consume_time = 0;  //ç»“æŸè®¡è´¹
+                DCF_Reset();         //¹Ø±Õµç´Å·§
+                g_consume_time = 0;  //½áÊø¼Æ·Ñ
                 display(g_ICCard_Value);
             }
 
-            //å¤„ç†ç»“æŸæœåŠ¡ç«¯æŒ‡ä»¤8ï¼Œç»“æŸæ¶ˆè´¹ä¿¡ä»¤
+            //´¦Àí½áÊø·şÎñ¶ËÖ¸Áî8£¬½áÊøÏû·ÑĞÅÁî
             s8 trade = -1;
             if (recv_mqtt_message(&trade) == TRUE)
             {
@@ -243,11 +240,11 @@ void main_loop(void)
                 {
                     send_consume_mesaage(2, 1);
                     g_state = WAIT_IC;
-                    DCF_Reset();         //å…³é—­ç”µç£é˜€
-                    g_consume_time = 0;  //ç»“æŸè®¡è´¹
+                    DCF_Reset();         //¹Ø±Õµç´Å·§
+                    g_consume_time = 0;  //½áÊø¼Æ·Ñ
                 }
 
-                //ä¸å…è®¸é‡å¤æ¶ˆè´¹
+                //²»ÔÊĞíÖØ¸´Ïû·Ñ
                 if(trade == 6)
                 {
                     deal_app_cousume_command(-1);
@@ -266,46 +263,46 @@ void main_loop(void)
 
 u8 scan_for_card(void)
 {
-    u8 status;          //è¯»å†™å¡çŠ¶æ€è¿”å›
-    u8 buf[16]= {0};    //è¯»å†™å¡ç¼“å†²buff
-    u8 DefaultKey[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};  //todo:ä½¿ç”¨g_pwdè½¬æ¢
-    status = Request(RF_CMD_REQUEST_ALL);       //å¯»å¡
+    u8 status;          //¶ÁĞ´¿¨×´Ì¬·µ»Ø
+    u8 buf[16]= {0};    //¶ÁĞ´¿¨»º³åbuff
+    u8 DefaultKey[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};  //todo:Ê¹ÓÃg_pwd×ª»»
+    status = Request(RF_CMD_REQUEST_ALL);       //Ñ°¿¨
     if(status != FM1702_OK){
-        //LOGD("æœªæ£€æµ‹åˆ°å¡ç‰‡");
+        //LOGD("Î´¼ì²âµ½¿¨Æ¬");
         return FALSE;
     }
 
-    status = AntiColl();                        //å†²çªæ£€æµ‹
+    status = AntiColl();                        //³åÍ»¼ì²â
     if(status != FM1702_OK){
-        LOGE("å¡ç‰‡å†²çª");
+        LOGE("¿¨Æ¬³åÍ»");
         return FALSE;
     }
 
-    status=Select_Card();                       //é€‰å¡
+    status=Select_Card();                       //Ñ¡¿¨
     if(status != FM1702_OK){
-        LOGE("é€‰æ‹©å¡ç‰‡å¤±è´¥");
+        LOGE("Ñ¡Ôñ¿¨Æ¬Ê§°Ü");
         return FALSE;
     }
 
-    status = Load_keyE2_CPY(DefaultKey);          //åŠ è½½å¯†ç 
+    status = Load_keyE2_CPY(DefaultKey);          //¼ÓÔØÃÜÂë
     if(status != TRUE){
-        LOGE("åŠ è½½å¯†ç å¤±è´¥");
+        LOGE("¼ÓÔØÃÜÂëÊ§°Ü");
         return FALSE;
     }
 
-    status = Authentication(UID, 7, RF_CMD_AUTH_LA);//éªŒè¯1æ‰‡åŒºkeyA
+    status = Authentication(UID, 7, RF_CMD_AUTH_LA);//ÑéÖ¤1ÉÈÇøkeyA
     if(status != FM1702_OK){
-        LOGE("éªŒè¯æ‰‡åŒºå¤±è´¥");
+        LOGE("ÑéÖ¤ÉÈÇøÊ§°Ü");
         return FALSE;
     }
 
     sprintf(g_card_id, "%02x%02x%02x%02x", UID[0], UID[1], UID[2], UID[3]);
-    //LOGI("è¯»å–åˆ°å¡ç‰‡å”¯ä¸€å·ï¼š%s", g_card_id);
+    //LOGI("¶ÁÈ¡µ½¿¨Æ¬Î¨Ò»ºÅ£º%s", g_card_id);
 
-    status=MIF_READ(buf,28);             //è¯»å¡ï¼Œè¯»å–7æ‰‡åŒº0å—æ•°æ®åˆ°buffer[0]-buffer[15]
+    status=MIF_READ(buf,28);             //¶Á¿¨£¬¶ÁÈ¡7ÉÈÇø0¿éÊı¾İµ½buffer[0]-buffer[15]
     if(status != FM1702_OK)
     {
-        LOGE("è¯»å¡æ•°æ®å¤±è´¥");
+        LOGE("¶Á¿¨Êı¾İÊ§°Ü");
         return FALSE;
     }
     else
@@ -317,15 +314,15 @@ u8 scan_for_card(void)
             g_ICCard_Value = g_ICCard_Value | buf[i];
         }
 
-        LOGI("æ‰‡åŒºè¯»å–ï¼š");
+        LOGI("ÉÈÇø¶ÁÈ¡£º");
         PrintHex(buf, sizeof(buf));
         i = 0;
         for(; i< 8; ++i){
             g_serverCardNo[i]= buf[i+4];
         }
-        //memcpy(g_serverCardNo, buf[4] , sizeof(g_serverCardNo));//è¯¥æ¥å£æœ‰é—®é¢˜
-        LOGI("è¯»å¡æ•°æ®æˆåŠŸï¼Œä½™é¢= %ld", g_ICCard_Value);
-        LOGI("è¯»å¡æ•°æ®æˆåŠŸï¼ŒæœåŠ¡ID= %s", g_serverCardNo);
+        //memcpy(g_serverCardNo, buf[4] , sizeof(g_serverCardNo));//¸Ã½Ó¿ÚÓĞÎÊÌâ
+        LOGI("¶Á¿¨Êı¾İ³É¹¦£¬Óà¶î= %ld", g_ICCard_Value);
+        LOGI("¶Á¿¨Êı¾İ³É¹¦£¬·şÎñID= %s", g_serverCardNo);
     }
 
     return TRUE;
@@ -334,20 +331,20 @@ u8 scan_for_card(void)
 
 u8 card_runing(void)
 {
-    u8 status;          //è¯»å†™å¡çŠ¶æ€è¿”å›
-    u8 buf[16]= {0};    //è¯»å†™å¡ç¼“å†²buff
-    u32 now_card_value = 0 ; //å½“å‰å¡ç‰‡è¯»å–çš„ä½™é¢
+    u8 status;          //¶ÁĞ´¿¨×´Ì¬·µ»Ø
+    u8 buf[16]= {0};    //¶ÁĞ´¿¨»º³åbuff
+    u32 now_card_value = 0 ; //µ±Ç°¿¨Æ¬¶ÁÈ¡µÄÓà¶î
 
-    status=MIF_READ(buf,28); //è¯»å¡ï¼Œè¯»å–7æ‰‡åŒº0å—æ•°æ®åˆ°buffer[0]-buffer[15]
+    status=MIF_READ(buf,28); //¶Á¿¨£¬¶ÁÈ¡7ÉÈÇø0¿éÊı¾İµ½buffer[0]-buffer[15]
     if(status != FM1702_OK)
     {
-        LOGE("è¯»å¡æ•°æ®å¤±è´¥");
-        g_state = WAIT_IC; //è¯»å¡å¤±è´¥ï¼Œå¡ç‰‡ç§»èµ°ï¼Œè®¾å¤‡çŠ¶æ€ç½®ä½
+        LOGE("¶Á¿¨Êı¾İÊ§°Ü");
+        g_state = WAIT_IC; //¶Á¿¨Ê§°Ü£¬¿¨Æ¬ÒÆ×ß£¬Éè±¸×´Ì¬ÖÃÎ»
         return FALSE;
     }
     else
     {
-        now_card_value = 0; //è¯»å–å¡å†…ä½™é¢
+        now_card_value = 0; //¶ÁÈ¡¿¨ÄÚÓà¶î
         int  i = 0;
         for(; i<4; ++i){
             now_card_value = now_card_value << 8;
@@ -356,11 +353,11 @@ u8 card_runing(void)
     }
 
 
-    //å½“å¡ç‰‡ä¸Šçš„ä½™é¢ä¸å®é™…ä½™é¢ä¸åŒ¹é…æ—¶å€™ï¼Œå†™å…¥å¡ç‰‡æ•°æ®
+    //µ±¿¨Æ¬ÉÏµÄÓà¶îÓëÊµ¼ÊÓà¶î²»Æ¥ÅäÊ±ºò£¬Ğ´Èë¿¨Æ¬Êı¾İ
     if(now_card_value != g_ICCard_Value)
     {
-        //LOGI("è¯»å¡æ•°æ®æˆåŠŸï¼Œä½™é¢= %ld", now_card_value);
-        LOGD("å¡ä¸Šä½™é¢=%dï¼Œ å½“å‰å®é™…ä½™é¢=%d, å†™å…¥å¡ç‰‡.", now_card_value, g_ICCard_Value);
+        //LOGI("¶Á¿¨Êı¾İ³É¹¦£¬Óà¶î= %ld", now_card_value);
+        LOGD("¿¨ÉÏÓà¶î=%d£¬ µ±Ç°Êµ¼ÊÓà¶î=%d, Ğ´Èë¿¨Æ¬.", now_card_value, g_ICCard_Value);
 
         int i =3;
         u32 temp = g_ICCard_Value ;
@@ -369,11 +366,11 @@ u8 card_runing(void)
             temp = temp >> 8;
         }
 
-        status=MIF_Write(buf,28);  //å†™å¡ï¼Œå°†buffer[0]-buffer[15]å†™å…¥1æ‰‡åŒº0å—
+        status=MIF_Write(buf,28);  //Ğ´¿¨£¬½«buffer[0]-buffer[15]Ğ´Èë1ÉÈÇø0¿é
         if(status != FM1702_OK)
         {
-            LOGE("å†™æ•°æ®å¤±è´¥");
-            g_state = WAIT_IC;     //å†™å¡å¤±è´¥ï¼Œå¡ç‰‡ç§»èµ°ï¼Œè®¾å¤‡çŠ¶æ€ç½®ä½
+            LOGE("Ğ´Êı¾İÊ§°Ü");
+            g_state = WAIT_IC;     //Ğ´¿¨Ê§°Ü£¬¿¨Æ¬ÒÆ×ß£¬Éè±¸×´Ì¬ÖÃÎ»
             return FALSE;
         }
     }
@@ -384,14 +381,14 @@ u8 card_runing(void)
 
 u8 read_card(void)
 {
-    u8 status;          //è¯»å†™å¡çŠ¶æ€è¿”å›
-    u8 buf[16]= {0};    //è¯»å†™å¡ç¼“å†²buff
+    u8 status;          //¶ÁĞ´¿¨×´Ì¬·µ»Ø
+    u8 buf[16]= {0};    //¶ÁĞ´¿¨»º³åbuff
 
-    //LOGD("å¡ç‰‡æ£€æµ‹---");
-    status=MIF_READ(buf,28); //è¯»å¡ï¼Œè¯»å–7æ‰‡åŒº0å—æ•°æ®åˆ°buffer[0]-buffer[15]
+    //LOGD("¿¨Æ¬¼ì²â---");
+    status=MIF_READ(buf,28); //¶Á¿¨£¬¶ÁÈ¡7ÉÈÇø0¿éÊı¾İµ½buffer[0]-buffer[15]
     if(status != FM1702_OK)
     {
-        LOGI("å¡ç‰‡è¢«ç§»èµ°");
+        LOGI("¿¨Æ¬±»ÒÆ×ß");
         return FALSE;
     }
     else
@@ -403,43 +400,43 @@ u8 read_card(void)
 
 u8 ic_wrtie_server_id(void)
 {
-    u8 status;          //è¯»å†™å¡çŠ¶æ€è¿”å›
-    u8 buf[16]= {0};    //è¯»å†™å¡ç¼“å†²buff
+    u8 status;          //¶ÁĞ´¿¨×´Ì¬·µ»Ø
+    u8 buf[16]= {0};    //¶ÁĞ´¿¨»º³åbuff
 
-    status=MIF_READ(buf,28); //è¯»å¡ï¼Œè¯»å–7æ‰‡åŒº0å—æ•°æ®åˆ°buffer[0]-buffer[15]
+    status=MIF_READ(buf,28); //¶Á¿¨£¬¶ÁÈ¡7ÉÈÇø0¿éÊı¾İµ½buffer[0]-buffer[15]
     if(status != FM1702_OK)
     {
-        LOGE("è¯»å¡æ•°æ®å¤±è´¥");
-        g_state = WAIT_IC; //è¯»å¡å¤±è´¥ï¼Œå¡ç‰‡ç§»èµ°ï¼Œè®¾å¤‡çŠ¶æ€ç½®ä½
+        LOGE("¶Á¿¨Êı¾İÊ§°Ü");
+        g_state = WAIT_IC; //¶Á¿¨Ê§°Ü£¬¿¨Æ¬ÒÆ×ß£¬Éè±¸×´Ì¬ÖÃÎ»
         return FALSE;
     }
 
-    //å†™å…¥å¡ç‰‡æœåŠ¡IDæ•°æ®
+    //Ğ´Èë¿¨Æ¬·şÎñIDÊı¾İ
     u8 i =0;
     for(; i<8; ++i){
         buf[i+4]= g_serverCardNo[i];
     }
-    status=MIF_Write(buf,28);  //å†™å¡ï¼Œå°†buffer[0]-buffer[15]å†™å…¥1æ‰‡åŒº0å—
+    status=MIF_Write(buf,28);  //Ğ´¿¨£¬½«buffer[0]-buffer[15]Ğ´Èë1ÉÈÇø0¿é
     if(status != FM1702_OK)
     {
-        LOGE("å†™æœåŠ¡å™¨ç»‘å®šIDå¤±è´¥");
-        g_state = WAIT_IC;     //å†™å¡å¤±è´¥ï¼Œå¡ç‰‡ç§»èµ°ï¼Œè®¾å¤‡çŠ¶æ€ç½®ä½
+        LOGE("Ğ´·şÎñÆ÷°ó¶¨IDÊ§°Ü");
+        g_state = WAIT_IC;     //Ğ´¿¨Ê§°Ü£¬¿¨Æ¬ÒÆ×ß£¬Éè±¸×´Ì¬ÖÃÎ»
         return FALSE;
     }
     else{
-        LOGI("å†™æœåŠ¡å™¨ç»‘å®šIDæˆåŠŸï¼Œ%s", g_serverCardNo);
+        LOGI("Ğ´·şÎñÆ÷°ó¶¨ID³É¹¦£¬%s", g_serverCardNo);
     }
 
-    status=MIF_READ(buf,28); //è¯»å¡ï¼Œè¯»å–7æ‰‡åŒº0å—æ•°æ®åˆ°buffer[0]-buffer[15]
+    status=MIF_READ(buf,28); //¶Á¿¨£¬¶ÁÈ¡7ÉÈÇø0¿éÊı¾İµ½buffer[0]-buffer[15]
     if(status != FM1702_OK)
     {
-        LOGE("è¯»å¡æ•°æ®å¤±è´¥");
-        g_state = WAIT_IC; //è¯»å¡å¤±è´¥ï¼Œå¡ç‰‡ç§»èµ°ï¼Œè®¾å¤‡çŠ¶æ€ç½®ä½
+        LOGE("¶Á¿¨Êı¾İÊ§°Ü");
+        g_state = WAIT_IC; //¶Á¿¨Ê§°Ü£¬¿¨Æ¬ÒÆ×ß£¬Éè±¸×´Ì¬ÖÃÎ»
         return FALSE;
     }
     else
     {
-         LOGD("å½“å‰æœåŠ¡å™¨ID=%s", (char*)buf[4]);
+         LOGD("µ±Ç°·şÎñÆ÷ID=%s", (char*)buf[4]);
     }
 
 
@@ -449,96 +446,96 @@ u8 ic_wrtie_server_id(void)
 u8 connect_to_server(void)
 {
     u8 p[64] = {0};
-    if(sim800c_send_cmd("AT","OK",100)) //æ£€æµ‹æ˜¯å¦åº”ç­”ATæŒ‡ä»¤ 
+    if(sim800c_send_cmd("AT","OK",100)) //¼ì²âÊÇ·ñÓ¦´ğATÖ¸Áî 
     {   
-        LOGE("sim800cæœªå›åº”ATæŒ‡ä»¤.");
+        LOGE("sim800cÎ´»ØÓ¦ATÖ¸Áî.");
         return FALSE;
     }
 
     if(sim800c_send_cmd("AT+CPIN?","OK",200))
     {
-        LOGE("sim800cæœªæ£€æµ‹åˆ°SIMå¡.");
+        LOGE("sim800cÎ´¼ì²âµ½SIM¿¨.");
         return FALSE;
     }
 
     sim800c_send_cmd("ATE0","OK",200);
 
-    //æ£€æµ‹åºåˆ—å·
+    //¼ì²âĞòÁĞºÅ
     USART3_RX_STA=0;
     if(sim800c_send_cmd("AT+CGSN","OK",200))
     {
-        LOGE("sim800cæœªè¿”å›åºåˆ—å·.");
+        LOGE("sim800cÎ´·µ»ØĞòÁĞºÅ.");
         return FALSE;
     }
     char* temp = strstr( (char*)USART3_RX_BUF+2, "\r\n");
     temp[0] = 0;
     strncpy(g_device_code, (char*)USART3_RX_BUF+2, sizeof(g_device_code));
-    LOGI("æ£€æµ‹åˆ°åºåˆ—å·: %s", g_device_code); //ä¿å­˜simå¡åºåˆ—å·ä½œä¸ºè®¾å¤‡åºåˆ—å·
+    LOGI("¼ì²âµ½ĞòÁĞºÅ: %s", g_device_code); //±£´æsim¿¨ĞòÁĞºÅ×÷ÎªÉè±¸ĞòÁĞºÅ
     USART3_RX_STA=0;
-    //ç»„è£…ClientID
+    //×é×°ClientID
     strncpy(g_clent_id + strlen(g_clent_id), (char*)g_device_code, sizeof(g_device_code));
-    LOGD("å®¢æˆ·ç«¯ID:%s", g_clent_id);
+    LOGD("¿Í»§¶ËID:%s", g_clent_id);
 
-    //æ£€æµ‹ä¿¡å·å¼ºåº¦
-    if(sim800c_send_cmd("AT+CSQ","+CSQ:",200))//æŸ¥è¯¢ä¿¡å·è´¨é‡
+    //¼ì²âĞÅºÅÇ¿¶È
+    if(sim800c_send_cmd("AT+CSQ","+CSQ:",200))//²éÑ¯ĞÅºÅÖÊÁ¿
     {
-        LOGE("sim800cæœªè¿”å›ä¿¡å·è´¨é‡");
+        LOGE("sim800cÎ´·µ»ØĞÅºÅÖÊÁ¿");
         return FALSE;
     }
     else
     {
         char *end;
         end=strstr((const char*)(USART3_RX_BUF+2),"\r\n");
-        *end= 0;//åŠ å…¥ç»“æŸç¬¦ 
-        LOGI("sim800cè¿”å›ä¿¡å·è´¨é‡:%s", USART3_RX_BUF+2);
+        *end= 0;//¼ÓÈë½áÊø·û 
+        LOGI("sim800c·µ»ØĞÅºÅÖÊÁ¿:%s", USART3_RX_BUF+2);
         USART3_RX_STA=0;
     }
 
 
 #if 0
-    if(sim800c_send_cmd("AT+CPIN?","OK",200))//æ£€æŸ¥SIMå¡æ˜¯å¦å‡†å¤‡å¥½
+    if(sim800c_send_cmd("AT+CPIN?","OK",200))//¼ì²éSIM¿¨ÊÇ·ñ×¼±¸ºÃ
     {
-        printf("no response. sim800cæœªè¿”å›æœ¬æœºå·ç .\r\n");
+        printf("no response. sim800cÎ´·µ»Ø±¾»úºÅÂë.\r\n");
     }
 
     if(sim800c_send_cmd("AT+CCLK?","+CCLK:",200))
     {
-        printf("no response. sim800cæœªè¿”å›æ—¥æœŸ\r\n");
+        printf("no response. sim800cÎ´·µ»ØÈÕÆÚ\r\n");
     }
 #endif
 
-    //æ›´æ–°NTPæ—¶é—´
+    //¸üĞÂNTPÊ±¼ä
     //ntp_update();
 
-    sim800c_send_cmd("AT+CIPCLOSE=1","CLOSE OK",100);   //å…³é—­è¿æ¥
-    sim800c_send_cmd("AT+CIPSHUT","SHUT OK",100);       //å…³é—­ç§»åŠ¨åœºæ™¯ 
+    sim800c_send_cmd("AT+CIPCLOSE=1","CLOSE OK",100);   //¹Ø±ÕÁ¬½Ó
+    sim800c_send_cmd("AT+CIPSHUT","SHUT OK",100);       //¹Ø±ÕÒÆ¶¯³¡¾° 
     if(sim800c_send_cmd("AT+CGCLASS=\"B\"","OK",1000)) 
-        return FALSE;             //è®¾ç½®GPRSç§»åŠ¨å°ç±»åˆ«ä¸ºB,æ”¯æŒåŒ…äº¤æ¢å’Œæ•°æ®äº¤æ¢ 
+        return FALSE;             //ÉèÖÃGPRSÒÆ¶¯Ì¨Àà±ğÎªB,Ö§³Ö°ü½»»»ºÍÊı¾İ½»»» 
     if(sim800c_send_cmd("AT+CGDCONT=1,\"IP\",\"CMNET\"","OK",1000))
-        return FALSE;//è®¾ç½®PDPä¸Šä¸‹æ–‡,äº’è”ç½‘æ¥åè®®,æ¥å…¥ç‚¹ç­‰ä¿¡æ¯
-    sim800c_send_cmd("AT+CGATT=1","OK",1000); //é™„ç€GPRSä¸šåŠ¡
+        return FALSE;//ÉèÖÃPDPÉÏÏÂÎÄ,»¥ÁªÍø½ÓĞ­Òé,½ÓÈëµãµÈĞÅÏ¢
+    sim800c_send_cmd("AT+CGATT=1","OK",1000); //¸½×ÅGPRSÒµÎñ
         //return FALSE;                    
     if(sim800c_send_cmd("AT+CIPCSGP=1,\"CMNET\"","OK",500))
-        return FALSE;        //è®¾ç½®ä¸ºGPRSè¿æ¥æ¨¡å¼
+        return FALSE;        //ÉèÖÃÎªGPRSÁ¬½ÓÄ£Ê½
         
     USART3_RX_STA=0;
     sprintf((char*)p,"AT+CIPSTART=\"TCP\",\"%s\",\"%s\"",HOST_IP,HOST_PORT);
     if(sim800c_send_cmd(p,"OK",500))
-        return FALSE;     //å‘èµ·è¿æ¥
+        return FALSE;     //·¢ÆğÁ¬½Ó
 
     u16 t=6;
     while(t--)
     {
         USART3_RX_STA=0;
-        sim800c_send_cmd("AT+CIPSTATUS","OK",500);  //æŸ¥è¯¢è¿æ¥çŠ¶æ€
+        sim800c_send_cmd("AT+CIPSTATUS","OK",500);  //²éÑ¯Á¬½Ó×´Ì¬
         if(strstr((const char*)USART3_RX_BUF,"CONNECT OK"))
         {
-            LOGI("TCPè¿æ¥å»ºç«‹æˆåŠŸ.");
+            LOGI("TCPÁ¬½Ó½¨Á¢³É¹¦.");
             return TRUE;
         }
         else if(strstr((const char*)USART3_RX_BUF,"CLOSED"))
         {
-            LOGI("TCPè¿æ¥å»ºç«‹å¤±è´¥.");
+            LOGI("TCPÁ¬½Ó½¨Á¢Ê§°Ü.");
             return FALSE;
         }
         delay_ms(1000);
@@ -551,39 +548,39 @@ u8 connect_to_server(void)
 
 u8 subscribe_mqtt(void)
 {
-    //ä¸mqttæœåŠ¡å™¨å»ºç«‹æ¡æ‰‹
+    //Óëmqtt·şÎñÆ÷½¨Á¢ÎÕÊÖ
     u16 len;
-    //å‘èµ·mqtt_connectè¯·æ±‚
-    len=mqtt_connect_message(mqtt_msg, g_clent_id , USRNAME, PASSWD);//id,ç”¨æˆ·åå’Œå¯†ç 
+    //·¢Æğmqtt_connectÇëÇó
+    len=mqtt_connect_message(mqtt_msg, g_clent_id , USRNAME, PASSWD);//id,ÓÃ»§ÃûºÍÃÜÂë
     PrintHex(mqtt_msg,len);
-    sprintf((char*)send_cmd, "AT+CIPSEND=%d", len);//æ¥æ”¶åˆ°çš„å­—èŠ‚æ•°
+    sprintf((char*)send_cmd, "AT+CIPSEND=%d", len);//½ÓÊÕµ½µÄ×Ö½ÚÊı
     USART3_RX_STA = 0;
-    if(sim800c_send_cmd(send_cmd,">",200)==0)//å‘é€æ•°æ®æˆåŠŸ
+    if(sim800c_send_cmd(send_cmd,">",200)==0)//·¢ËÍÊı¾İ³É¹¦
     {
         u3_printf_hex(mqtt_msg, len);
-        delay_ms(1000);                      //å¿…é¡»åŠ å»¶æ—¶
-        //sim800c_send_cmd((u8*)0X1A,0,0);   //CTRL+Z,ç»“æŸæ•°æ®å‘é€,å¯åŠ¨ä¸€æ¬¡ä¼ è¾“
-        LOGI("MQTTæ¡æ‰‹æˆåŠŸ.");
+        delay_ms(1000);                      //±ØĞë¼ÓÑÓÊ±
+        //sim800c_send_cmd((u8*)0X1A,0,0);   //CTRL+Z,½áÊøÊı¾İ·¢ËÍ,Æô¶¯Ò»´Î´«Êä
+        LOGI("MQTTÎÕÊÖ³É¹¦.");
     }else if(sim800c_send_cmd(send_cmd,"ERROR",200)==0){
-        LOGE("MQTTæ¡æ‰‹å¤±è´¥.");
+        LOGE("MQTTÎÕÊÖÊ§°Ü.");
         return FALSE;
     }
 
 
-    len=mqtt_subscribe_message(mqtt_msg,TOPIC_SUB,1,1);//è®¢é˜…testä¸»é¢˜
+    len=mqtt_subscribe_message(mqtt_msg,TOPIC_SUB,1,1);//¶©ÔÄtestÖ÷Ìâ
     //printf("send len = %d\r\n", len);
     //LOGI("mqtt_subscribe... \r\n");
     PrintHex(mqtt_msg,len);
-    sprintf((char*)send_cmd, "AT+CIPSEND=%d", len);//æ¥æ”¶åˆ°çš„å­—èŠ‚æ•°
-    if(sim800c_send_cmd(send_cmd,">",200)==0)//å‘é€æ•°æ®
+    sprintf((char*)send_cmd, "AT+CIPSEND=%d", len);//½ÓÊÕµ½µÄ×Ö½ÚÊı
+    if(sim800c_send_cmd(send_cmd,">",200)==0)//·¢ËÍÊı¾İ
     {
         u3_printf_hex(mqtt_msg, len);
-        delay_ms(500);                 //å¿…é¡»åŠ å»¶æ—¶
-        //sim800c_send_cmd((u8*)0X1A,0,0);    //CTRL+Z,ç»“æŸæ•°æ®å‘é€,å¯åŠ¨ä¸€æ¬¡ä¼ è¾“
-        LOGI("MQTTè®¢é˜…ä¸»é¢˜æˆåŠŸ.");
+        delay_ms(500);                 //±ØĞë¼ÓÑÓÊ±
+        //sim800c_send_cmd((u8*)0X1A,0,0);    //CTRL+Z,½áÊøÊı¾İ·¢ËÍ,Æô¶¯Ò»´Î´«Êä
+        LOGI("MQTT¶©ÔÄÖ÷Ìâ³É¹¦.");
     }
     else if(sim800c_send_cmd(send_cmd,"ERROR",200)==0){
-        LOGE("MQTTè®¢é˜…ä¸»é¢˜å¤±è´¥.");
+        LOGE("MQTT¶©ÔÄÖ÷ÌâÊ§°Ü.");
         return FALSE;
     }
 
@@ -595,8 +592,8 @@ u8 subscribe_mqtt(void)
 u8 send_keep_alive_mesaage(void)
 {
     u16 len;
-    u8 msg[300]={0}; //ä¿¡ä»¤å†…å®¹
-    LOGD("å‘é€MQTTä¿æ´»ä¿¡ä»¤.");
+    u8 msg[300]={0}; //ĞÅÁîÄÚÈİ
+    LOGD("·¢ËÍMQTT±£»îĞÅÁî.");
     create_keep_alive_message(msg, sizeof(msg));
     //PrintHex(msg, strlen(msg));
     //LOGD("message:%s", msg);
@@ -606,29 +603,29 @@ u8 send_keep_alive_mesaage(void)
     len = MQTTSerialize_publish((unsigned char*)mqtt_msg, sizeof(mqtt_msg), 0 ,0, 0, 0, top, msg, strlen(msg));
     //PrintHex(mqtt_msg,len);
 
-    //å¦‚æœå¤§äº254ä¸ªå­—èŠ‚ï¼Œéœ€è¦åˆ†å¤šæ¬¡å‘é€,æ¯æ¬¡å‘é€200ä¸ªå­—èŠ‚
-    u8 t = 0 ;  //è®°å½•å·²ç»å‘é€çš„æ¬¡æ•°
+    //Èç¹û´óÓÚ254¸ö×Ö½Ú£¬ĞèÒª·Ö¶à´Î·¢ËÍ,Ã¿´Î·¢ËÍ200¸ö×Ö½Ú
+    u8 t = 0 ;  //¼ÇÂ¼ÒÑ¾­·¢ËÍµÄ´ÎÊı
     while(len > 254){
-        sprintf((char*)send_cmd, "AT+CIPSEND=%d", 200);//æ¥æ”¶åˆ°çš„å­—èŠ‚æ•°
-        if(sim800c_send_cmd(send_cmd,">",200)==0)//å‘é€æ•°æ®
+        sprintf((char*)send_cmd, "AT+CIPSEND=%d", 200);//½ÓÊÕµ½µÄ×Ö½ÚÊı
+        if(sim800c_send_cmd(send_cmd,">",200)==0)//·¢ËÍÊı¾İ
         {
             u3_printf_hex(mqtt_msg + t*200, 200);
-            delay_ms(200);                //å¿…é¡»åŠ å»¶æ—¶
+            delay_ms(200);                //±ØĞë¼ÓÑÓÊ±
             //USART3_RX_STA = 0;
         }
         t++;
         len = len - 200;
     }
 
-    sprintf((char*)send_cmd, "AT+CIPSEND=%d", len);//æ¥æ”¶åˆ°çš„å­—èŠ‚æ•°
-    if(sim800c_send_cmd(send_cmd,">",200)==0)//å‘é€æ•°æ®
+    sprintf((char*)send_cmd, "AT+CIPSEND=%d", len);//½ÓÊÕµ½µÄ×Ö½ÚÊı
+    if(sim800c_send_cmd(send_cmd,">",200)==0)//·¢ËÍÊı¾İ
     {
         u3_printf_hex(mqtt_msg + t*200, len);
-        delay_ms(200);                  //å¿…é¡»åŠ å»¶æ—¶
+        delay_ms(200);                  //±ØĞë¼ÓÑÓÊ±
         //USART3_RX_STA=0;
     }else if (sim800c_send_cmd(send_cmd,"ERROR",200)==0){
-        //å‘é€å¤±è´¥ï¼Œè¿æ¥å¯èƒ½æ–­å¼€
-        LOGE("å‘é€ä¿æ´»ä¿¡ä»¤å¤±è´¥.");
+        //·¢ËÍÊ§°Ü£¬Á¬½Ó¿ÉÄÜ¶Ï¿ª
+        LOGE("·¢ËÍ±£»îĞÅÁîÊ§°Ü.");
         return FALSE;
     }
 
@@ -645,13 +642,13 @@ u8 deal_keep_alive_mesaage_response(void)
 u8 recv_mqtt_message(s8* trade)
 {
     *trade = -1;
-    //æ¥æ”¶åˆ°ä¸€æ¬¡æ•°æ®äº†
+    //½ÓÊÕµ½Ò»´ÎÊı¾İÁË
     if(USART3_RX_STA&0X8000)
     {
-       //LOGD("æ”¶åˆ°äº†æ•°æ®[%x]=%s", USART3_RX_STA, USART3_RX_BUF);
-       LOGD("æ”¶åˆ°äº†æ•°æ®[%x]", USART3_RX_STA);
+       //LOGD("ÊÕµ½ÁËÊı¾İ[%x]=%s", USART3_RX_STA, USART3_RX_BUF);
+       LOGD("ÊÕµ½ÁËÊı¾İ[%x]", USART3_RX_STA);
        //PrintHex(USART3_RX_BUF, 100);
-       //æ”¶åˆ°è®¢é˜…æ¶ˆæ¯
+       //ÊÕµ½¶©ÔÄÏûÏ¢
        if (USART3_RX_BUF[0] == 0x32){
            USART3_RX_BUF[USART3_RX_STA&0x7fff] = 0;
            unsigned char dup;
@@ -666,12 +663,12 @@ u8 recv_mqtt_message(s8* trade)
                                &payload_in, &payloadlen_in, USART3_RX_BUF, sizeof(USART3_RX_BUF));
            strncpy(mqtt_msg, payload_in, payloadlen_in);
            mqtt_msg[payloadlen_in] = 0;
-           //LOGI("æ”¶åˆ°æœåŠ¡å™¨æ¶ˆæ¯1[msgId:%d]=%s\n",  msgid, payload_in);
-           LOGI("æ”¶åˆ°æœåŠ¡å™¨æ¶ˆæ¯=%s",   mqtt_msg);
-           //å‘é€ACKåŒ…
+           //LOGI("ÊÕµ½·şÎñÆ÷ÏûÏ¢1[msgId:%d]=%s\n",  msgid, payload_in);
+           LOGI("ÊÕµ½·şÎñÆ÷ÏûÏ¢=%s",   mqtt_msg);
+           //·¢ËÍACK°ü
            u8 ack[4] ={0x40, 0x02, (0xff00&msgid)>>8, 0xff&msgid};
            if(sim800c_send_cmd("AT+CIPSEND=4",">",200)==0){
-               //LOGD("è¿”å›ACKåŒ…");
+               //LOGD("·µ»ØACK°ü");
                u3_printf_hex(ack, sizeof(ack));
                delay_ms(200);
            }
@@ -680,21 +677,21 @@ u8 recv_mqtt_message(s8* trade)
            return TRUE;
        }
        else{
-            //ä¸æ˜¯æœåŠ¡å™¨æ¶ˆæ¯ï¼Œæ¸…é™¤æ¥å—ç¼“å†²
+            //²»ÊÇ·şÎñÆ÷ÏûÏ¢£¬Çå³ı½ÓÊÜ»º³å
             USART3_RX_STA = 0;
        }
 
        #if 0
        p2=strstr((char*)USART3_RX_BUF,"+IPD");
-       if(p2)//æ¥æ”¶åˆ°TCP/UDPæ•°æ®
+       if(p2)//½ÓÊÕµ½TCP/UDPÊı¾İ
        {
            int recv_len = 0;
            p2 = strstr((char*)USART3_RX_BUF,",");
            p3 = strstr((char*)USART3_RX_BUF,":");
-           *p3 = 0;//åŠ å…¥ç»“æŸç¬¦
+           *p3 = 0;//¼ÓÈë½áÊø·û
            recv_len = atoi(p2+1);
-           *(p3 + 1 + recv_len) = 0; //åªæ˜¾ç¤ºæ¥æ”¶åˆ°çš„æ•°æ®
-           LOGD("æ”¶åˆ°%dä¸ªå­—èŠ‚ï¼Œå†…å®¹å¦‚ä¸‹:%s", recv_len, p3+1);
+           *(p3 + 1 + recv_len) = 0; //Ö»ÏÔÊ¾½ÓÊÕµ½µÄÊı¾İ
+           LOGD("ÊÕµ½%d¸ö×Ö½Ú£¬ÄÚÈİÈçÏÂ:%s", recv_len, p3+1);
            PrintHex((u8*)p3+1, recv_len);
        }
        #endif
@@ -714,28 +711,28 @@ u8 send_start_consume_mesaage(void)
 {
 
     u16 len;
-    u8 msg[200]={0}; //ä¿¡ä»¤å†…å®¹
+    u8 msg[200]={0}; //ĞÅÁîÄÚÈİ
 
     create_start_consume_message(msg, sizeof(msg));
-    LOGD("å‘é€å¼€å§‹æ¶ˆè´¹ä¿¡ä»¤:%s.", msg);
+    LOGD("·¢ËÍ¿ªÊ¼Ïû·ÑĞÅÁî:%s.", msg);
 
     MQTTString top = MQTTString_initializer;
     top.cstring = TOPIC_PUB;
     len = MQTTSerialize_publish((unsigned char*)mqtt_msg, sizeof(mqtt_msg), 0 ,0, 0, 0, top, msg, strlen(msg));
-    sprintf((char*)send_cmd, "AT+CIPSEND=%d", len);//è¦å‘é€çš„æ•°æ®é•¿åº¦
-    if(sim800c_send_cmd(send_cmd,">",200)==0)//å‘é€æ•°æ®
+    sprintf((char*)send_cmd, "AT+CIPSEND=%d", len);//Òª·¢ËÍµÄÊı¾İ³¤¶È
+    if(sim800c_send_cmd(send_cmd,">",200)==0)//·¢ËÍÊı¾İ
     {
        u3_printf_hex(mqtt_msg, len);
-       delay_ms(500);                  //å¿…é¡»åŠ å»¶æ—¶
+       delay_ms(500);                  //±ØĞë¼ÓÑÓÊ±
        //USART3_RX_STA=0;
     }else if (sim800c_send_cmd(send_cmd,"ERROR",200)==0){
-       //å‘é€å¤±è´¥ï¼Œè¿æ¥å¯èƒ½æ–­å¼€
-       LOGE("å‘é€å¼€å§‹æ¶ˆè´¹ä¿¡ä»¤å¤±è´¥.");
+       //·¢ËÍÊ§°Ü£¬Á¬½Ó¿ÉÄÜ¶Ï¿ª
+       LOGE("·¢ËÍ¿ªÊ¼Ïû·ÑĞÅÁîÊ§°Ü.");
        return FALSE;
     }
 
 
-    //ç­‰å¾…æ¶ˆæ¯å›å¤ï¼Œè¶…æ—¶10ç§’
+    //µÈ´ıÏûÏ¢»Ø¸´£¬³¬Ê±10Ãë
     u16 t=500;
     while(t--)
     {
@@ -761,31 +758,31 @@ u8 send_start_consume_mesaage(void)
 }
 
 
-//å‘é€æ‰£è´¹ä¿¡æ¯
-//ic_flagæ ‡å¿— 1-ICå¡æ¶ˆè´¹ï¼Œ 2-appæ¶ˆè´¹
-//finish_flagæ ‡å¿— 1-ç»“æŸæ¶ˆè´¹ï¼Œ 2-æ­£åœ¨æ¶ˆè´¹
+//·¢ËÍ¿Û·ÑĞÅÏ¢
+//ic_flag±êÖ¾ 1-IC¿¨Ïû·Ñ£¬ 2-appÏû·Ñ
+//finish_flag±êÖ¾ 1-½áÊøÏû·Ñ£¬ 2-ÕıÔÚÏû·Ñ
 u8 send_consume_mesaage(u8 ic_flag, u8 finish_flag)
 {
 
     u16 len;
-    u8 msg[200]={0}; //ä¿¡ä»¤å†…å®¹
+    u8 msg[200]={0}; //ĞÅÁîÄÚÈİ
     
     create_consume_message(msg, sizeof(msg), ic_flag, finish_flag);
-    LOGD("å‘é€æ‰£è´¹ä¿¡æ¯:%s", msg);
+    LOGD("·¢ËÍ¿Û·ÑĞÅÏ¢:%s", msg);
 
     MQTTString top = MQTTString_initializer;
     top.cstring = TOPIC_PUB;
     len = MQTTSerialize_publish((unsigned char*)mqtt_msg, sizeof(mqtt_msg), 0 ,0, 0, 0, top, msg, strlen(msg));
-    sprintf((char*)send_cmd, "AT+CIPSEND=%d", len);//è¦å‘é€çš„æ•°æ®é•¿åº¦
-    if(sim800c_send_cmd(send_cmd,">",200)==0)//å‘é€æ•°æ®
+    sprintf((char*)send_cmd, "AT+CIPSEND=%d", len);//Òª·¢ËÍµÄÊı¾İ³¤¶È
+    if(sim800c_send_cmd(send_cmd,">",200)==0)//·¢ËÍÊı¾İ
     {
         u3_printf_hex(mqtt_msg, len);
-        delay_ms(500);                  //å¿…é¡»åŠ å»¶æ—¶
+        delay_ms(500);                  //±ØĞë¼ÓÑÓÊ±
         //USART3_RX_STA=0;
         return TRUE;
     }else if (sim800c_send_cmd(send_cmd,"ERROR",200)==0){
-        //å‘é€å¤±è´¥ï¼Œè¿æ¥å¯èƒ½æ–­å¼€
-        LOGE("å‘é€æ‰£è´¹ä¿¡æ¯å¤±è´¥.");
+        //·¢ËÍÊ§°Ü£¬Á¬½Ó¿ÉÄÜ¶Ï¿ª
+        LOGE("·¢ËÍ¿Û·ÑĞÅÏ¢Ê§°Ü.");
         return FALSE;
     }
 
@@ -809,50 +806,50 @@ u8 deal_app_cousume_command(s8 ok_flag)
         json_error_t error;
         message = json_loads((char*)mqtt_msg, 0, &error);
         if(!message){
-            LOGE("Json æ•°æ®æ ¼å¼é”™è¯¯[message]");
+            LOGE("Json Êı¾İ¸ñÊ½´íÎó[message]");
             json_decref(message);
             return FALSE;
         }
 
         data = json_object_get(message, M_DATA);
         if (!data || !json_is_object(data)){
-            LOGE("Json æ•°æ®æ ¼å¼é”™è¯¯[data]");
+            LOGE("Json Êı¾İ¸ñÊ½´íÎó[data]");
             json_decref(message);
             return FALSE;
         }
 
         json_t* ordNo = json_object_get(data, M_orderNo);
         if(!ordNo || !json_is_string(ordNo)){
-            LOGE("Json æ•°æ®æ ¼å¼é”™è¯¯[M_orderNo]");
+            LOGE("Json Êı¾İ¸ñÊ½´íÎó[M_orderNo]");
             json_decref(message);
             return FALSE;
         }else{
-            LOGI("å½“å‰appæ¶ˆè´¹è®¢å•:%s", json_string_value(ordNo));
+            LOGI("µ±Ç°appÏû·Ñ¶©µ¥:%s", json_string_value(ordNo));
             strncpy(temp_orderNo, json_string_value(ordNo), sizeof(temp_orderNo));
         }
 
         json_decref(message);
-        LOGE("å½“å‰è®¾å¤‡æ­£åœ¨æ¶ˆè´¹ï¼Œä¸å…è®¸å†æ¬¡æ¶ˆè´¹.");
+        LOGE("µ±Ç°Éè±¸ÕıÔÚÏû·Ñ£¬²»ÔÊĞíÔÙ´ÎÏû·Ñ.");
     }
 
     u16 len;
-    u8 msg[200]={0}; //ä¿¡ä»¤å†…å®¹
-    create_start_app_consume_response(msg, sizeof(msg), ok_flag, temp_orderNo);//è¿”å›æˆåŠŸ
-    LOGD("å‘é€appæ¶ˆè´¹è¯·æ±‚å“åº”:%s", msg);
+    u8 msg[200]={0}; //ĞÅÁîÄÚÈİ
+    create_start_app_consume_response(msg, sizeof(msg), ok_flag, temp_orderNo);//·µ»Ø³É¹¦
+    LOGD("·¢ËÍappÏû·ÑÇëÇóÏìÓ¦:%s", msg);
 
     MQTTString top = MQTTString_initializer;
     top.cstring = TOPIC_PUB;
     len = MQTTSerialize_publish((unsigned char*)mqtt_msg, sizeof(mqtt_msg), 0 ,0, 0, 0, top, msg, strlen(msg));
-    sprintf((char*)send_cmd, "AT+CIPSEND=%d", len);//è¦å‘é€çš„æ•°æ®é•¿åº¦
-    if(sim800c_send_cmd(send_cmd,">",200)==0)//å‘é€æ•°æ®
+    sprintf((char*)send_cmd, "AT+CIPSEND=%d", len);//Òª·¢ËÍµÄÊı¾İ³¤¶È
+    if(sim800c_send_cmd(send_cmd,">",200)==0)//·¢ËÍÊı¾İ
     {
        u3_printf_hex(mqtt_msg, len);
-       delay_ms(500);//å¿…é¡»åŠ å»¶æ—¶
+       delay_ms(500);//±ØĞë¼ÓÑÓÊ±
 
        return TRUE;
     }else {
-       //å‘é€å¤±è´¥ï¼Œè¿æ¥å¯èƒ½æ–­å¼€
-       LOGE("å‘é€appæ¶ˆè´¹è¯·æ±‚å“åº”å¤±è´¥.");
+       //·¢ËÍÊ§°Ü£¬Á¬½Ó¿ÉÄÜ¶Ï¿ª
+       LOGE("·¢ËÍappÏû·ÑÇëÇóÏìÓ¦Ê§°Ü.");
        return FALSE;
     }
 
@@ -860,7 +857,7 @@ u8 deal_app_cousume_command(s8 ok_flag)
 
 
 
-//å¤„ç†æœåŠ¡ç«¯æŒ‡ä»¤8ï¼Œappæ¶ˆè´¹ç»“æŸå‘½ä»¤
+//´¦Àí·şÎñ¶ËÖ¸Áî8£¬appÏû·Ñ½áÊøÃüÁî
 u8 deal_command_app_finish(void)
 {
     return parse_finish_app_consume_message(mqtt_msg, sizeof(mqtt_msg));
