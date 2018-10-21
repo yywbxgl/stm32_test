@@ -135,6 +135,8 @@ void main_loop(void)
             if(send_start_consume_mesaage() == TRUE){
                 //发送开始消费请求，等待响应
                 LOGI("开始刷卡消费！");
+                TIM3_Int_Init(g_logRate*1000, 52000); //每隔g_logRate发送一消费信息
+                
                 g_state = IC_CONSUME;
                 g_consume_time = 0;  //开始计费
                 DCF_Set();           //打开电磁阀
@@ -166,6 +168,7 @@ void main_loop(void)
                //结束前发送一个结束信令
                send_consume_mesaage(1, 1);
                g_state = WAIT_IC;
+               TIM_Cmd(TIM3, DISABLE);  //关闭定时器
                DCF_Reset();         //关闭电磁阀
                g_consume_time = 0;  //结束计费
             }
@@ -176,6 +179,7 @@ void main_loop(void)
                 //结束前发送一个结束信令
                 send_consume_mesaage(1, 1);
                 g_state = WAIT_IC;
+                TIM_Cmd(TIM3, DISABLE);  //关闭定时器
                 DCF_Reset();         //关闭电磁阀
                 g_consume_time = 0;  //结束计费
                 //等待卡片移走置位状态
@@ -185,12 +189,6 @@ void main_loop(void)
                     delay_ms(100);
                 }
                 g_state = WAIT_IC;
-            }
-
-            //每隔g_logRate发送一消费信息
-            if(time_t % (g_logRate*100) == 0)
-            {
-               send_consume_mesaage(1, 2);
             }
 
             s8 trade =  -1;

@@ -7,6 +7,7 @@
 #include "utils.h"
 #include "usart3.h"
 #include "delay.h"
+#include "app.h"
 
 
 extern vu16 USART3_RX_STA;
@@ -42,7 +43,7 @@ void TIM3_Int_Init(u16 arr,u16 psc)
     NVIC_Init(&NVIC_InitStructure);  //初始化NVIC寄存器
 
 
-    TIM_Cmd(TIM3, ENABLE);  //使能TIMx
+    //TIM_Cmd(TIM3, ENABLE);  //使能TIMx
 }
 
 //定时器3中断服务程序
@@ -50,24 +51,8 @@ void TIM3_IRQHandler(void)   //TIM3中断
 {
     if (TIM_GetITStatus(TIM3, TIM_IT_Update) != RESET)  //检查TIM3更新中断发生与否
     {
-        u16 len;
-        u8 mqtt_msg[200]={0}; //mqtt消息包
-        u8 send_cmd[20]= {0};
-        LOGI("mqtt publish... \r\n");
-        len=mqtt_publish_message(mqtt_msg, TOPIC_PUB, "device_sun_smile", 0);
-        //LOGI("send len = %d\r\n", len);
-        sprintf((char*)send_cmd, "AT+CIPSEND=%d", len);//接收到的字节数
-        if(sim800c_send_cmd(send_cmd,">",200)==0)//发送数据
-        {
-            PrintHex(mqtt_msg,len);
-            u3_printf_hex(mqtt_msg, len);
-            //delay_ms(1000);                      //必须加延时
-            //sim800c_send_cmd((u8*)0X1A,0,0);    //CTRL+Z,结束数据发送,启动一次传输
-            //delay_ms(1000);
-            //delay_ms(1000);
-        }
+        send_consume_mesaage(1, 2);
         TIM_ClearITPendingBit(TIM3, TIM_IT_Update  );  //清除TIMx更新中断标志
-        //delay_ms(1000);
     }
 }
 
