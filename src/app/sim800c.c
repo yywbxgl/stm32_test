@@ -115,8 +115,10 @@ u8 sim800c_send_hex(u8 *buf, u8 len, u8 *ack, u16 waittime)
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+
 //GPRS测试部分代码
 
+#if 0
 const u8 *modetbl[2]={"TCP","UDP"};//连接模式
 //tcp/udp测试
 //带心跳功能,以维持连接
@@ -312,17 +314,6 @@ u8 sim800c_gsminfo_show()
     return res;
 }
 
-//NTP更新时间
-void ntp_update(void)
-{  
-     sim800c_send_cmd("AT+SAPBR=3,1,\"Contype\",\"GPRS\"","OK",200);//配置承载场景1
-     sim800c_send_cmd("AT+SAPBR=3,1,\"APN\",\"CMNET\"","OK",200);
-     sim800c_send_cmd("AT+SAPBR=1,1",0,200);//激活一个GPRS上下文
-     delay_ms(5);
-     sim800c_send_cmd("AT+CNTPCID=1","OK",200);//设置CNTP使用的CID
-     sim800c_send_cmd("AT+CNTP=\"202.120.2.101\",32","OK",200);//设置NTP服务器和本地时区(32时区 时间最准确)
-     sim800c_send_cmd("AT+CNTP","+CNTP: 1",600);//同步网络时间
-}
 
 //SIM800C主测试程序
 void sim800c_test(void)
@@ -351,6 +342,21 @@ void sim800c_test(void)
     }
 
 }
+
+#endif
+
+//NTP更新时间
+void ntp_update(void)
+{  
+     sim800c_send_cmd("AT+SAPBR=3,1,\"Contype\",\"GPRS\"","OK",200);//配置承载场景1
+     sim800c_send_cmd("AT+SAPBR=3,1,\"APN\",\"CMNET\"","OK",200);
+     sim800c_send_cmd("AT+SAPBR=1,1",0,200);//激活一个GPRS上下文
+     delay_ms(5);
+     sim800c_send_cmd("AT+CNTPCID=1","OK",200);//设置CNTP使用的CID
+     sim800c_send_cmd("AT+CNTP=\"202.120.2.101\",32","OK",200);//设置NTP服务器和本地时区(32时区 时间最准确)
+     sim800c_send_cmd("AT+CNTP","+CNTP: 1",600);//同步网络时间
+}
+
 
 //检测当前TCP连接是否正常
 

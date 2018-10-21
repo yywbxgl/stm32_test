@@ -12,12 +12,13 @@ u8 sim800c_send_cmd(u8 *cmd,u8 *ack,u16 waittime);
 
 u8 sim800c_send_hex(u8 *cmd,u8 len, u8 *ack,u16 waittime);
 
-
+#if 0
 void sim800c_mtest_ui(void);	         //sim800c主测试UI
 u8 sim800c_gsminfo_show(void);	         //显示GSM模块信息
-void ntp_update(void);               //网络同步时间
 void sim800c_test(void);			 //sim800c主测试函数
+#endif
 
+void ntp_update(void);               //网络同步时间
 
 u8 sim800c_tcp_check(void);			 //检测当前TCP连接是否正常
 
