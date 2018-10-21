@@ -16,6 +16,7 @@
 #include "logging.h"
 #include "utils.h"
 #include "app.h"
+#include "wdg.h"
 
 
 
@@ -31,6 +32,7 @@ int main(void)
     Init_FM1702();          //fm1702初始化
     DCF_Init();             //电磁阀初始化
     DPinit();               //数码管初始化
+    IWDG_Init(4,1250);       //与分频数为64,重载值为1250,溢出时间为2s,再RTC时钟中断进行喂狗
     LOGI("hardware init finish.");
 
     //usart_test();

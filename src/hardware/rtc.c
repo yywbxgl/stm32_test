@@ -4,6 +4,8 @@
 #include "rtc.h" 
 #include "digitron.h"
 #include "utils.h"
+#include "wdg.h"
+
 
 
 _calendar_obj calendar;//时钟结构体 
@@ -12,8 +14,8 @@ static void RTC_NVIC_Config(void)
 {
     NVIC_InitTypeDef NVIC_InitStructure;
     NVIC_InitStructure.NVIC_IRQChannel = RTC_IRQn;      //RTC全局中断
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;   //先占优先级1位,从优先级3位
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;  //先占优先级0位,从优先级4位
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;   //先占优先级1位,从优先级3位
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;  //先占优先级0位,从优先级4位
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;     //使能该通道中断
     NVIC_Init(&NVIC_InitStructure);     //根据NVIC_InitStruct中指定的参数初始化外设NVIC寄存器
 }
@@ -70,6 +72,7 @@ u8 RTC_Init(void)
 //extern u16 tcnt; 
 void RTC_IRQHandler(void)
 {
+    IWDG_Feed();
     static u8 cnt = 0;   //扣费间隔计数
     if (RTC_GetITStatus(RTC_IT_SEC) != RESET)//秒钟中断
     {
