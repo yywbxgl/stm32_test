@@ -679,11 +679,6 @@
               <FilePath>.\src\system\delay.c</FilePath>
             </File>
             <File>
-              <FileName>malloc.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\system\malloc.c</FilePath>
-            </File>
-            <File>
               <FileName>sys.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\system\sys.c</FilePath>
@@ -722,6 +717,11 @@
               <FileName>app.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\app\app.c</FilePath>
+            </File>
+            <File>
+              <FileName>wdg.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\hardware\wdg.c</FilePath>
             </File>
           </Files>
         </Group>
