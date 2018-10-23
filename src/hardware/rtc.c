@@ -72,12 +72,11 @@ u8 RTC_Init(void)
 //extern u16 tcnt; 
 void RTC_IRQHandler(void)
 {
-    IWDG_Feed();
     static u8 cnt = 0;   //扣费间隔计数
     if (RTC_GetITStatus(RTC_IT_SEC) != RESET)//秒钟中断
     {
         RTC_Get();//更新时间
-
+        IWDG_Feed();
         if (g_state == IC_CONSUME|| g_state == APP_CONSUME){
             display(g_ICCard_Value);
         }
