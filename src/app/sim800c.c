@@ -363,21 +363,23 @@ void ntp_update(void)
 u8 sim800c_tcp_check(void)
 {
     //查询连接状态
+    //可以使用mqtt保活包
+    //TCP连接异常，尝试重新连接TCP，不行再软重启SIM800C模块
     USART3_RX_STA=0;
     if (sim800c_send_cmd("AT+CIPSTATUS","OK",500) == 0)
     {
         if(strstr((const char*)USART3_RX_BUF,"CONNECT OK")){
-            LOGI("TCP连接正常.");
+            //LOGI("TCP连接正常.");
             return TRUE;
         }
         else{
-            LOGE("TCP连接断开.");
+            //LOGE("TCP连接断开.");
             return FALSE;
         }
     }
     else
     {
-        LOGE("SIM卡无应答.");
+        //LOGE("SIM卡无应答.");
         return FALSE;
     }
 }

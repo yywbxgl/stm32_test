@@ -24,7 +24,7 @@
 #include <string.h>
 
 
-u8 mqtt_msg[400]={0}; //mqtt消息包
+u8 mqtt_msg[1000]={0}; //mqtt消息包
 u8 send_cmd[20]= {0};
 
 
@@ -82,8 +82,9 @@ void main_loop(void)
             {
                 //网络断开重新连接
                 if(sim800c_tcp_check() == FALSE){
-                    g_state = INIT;
-                    continue;
+                    ;
+                    //g_state = INIT;
+                    //continue;
                 }
             }
 
@@ -173,7 +174,8 @@ void main_loop(void)
             {
                 //网络断开??
                 if(sim800c_tcp_check() == FALSE){
-                    LOGE("----网络异常----");;
+                    ;
+                    //LOGE("----网络异常----");
                     //g_state = INIT;
                     //continue;
                 }
@@ -226,7 +228,8 @@ void main_loop(void)
             {
                //网络断开??
                 if(sim800c_tcp_check() == FALSE){
-                    LOGE("----网络异常----");
+                    ;
+                    //LOGE("----网络异常----");
                     //g_state = INIT;
                     //continue;
                 }
@@ -475,6 +478,7 @@ u8 connect_to_server(void)
         return FALSE;
     }
 
+    //关闭回显示
     sim800c_send_cmd("ATE0","OK",200);
 
     //检测序列号
@@ -508,30 +512,99 @@ u8 connect_to_server(void)
         USART3_RX_STA=0;
     }
 
-
-#if 0
-    if(sim800c_send_cmd("AT+CPIN?","OK",200))//检查SIM卡是否准备好
-    {
-        printf("no response. sim800c未返回本机号码.\r\n");
-    }
-
-    if(sim800c_send_cmd("AT+CCLK?","+CCLK:",200))
-    {
-        printf("no response. sim800c未返回日期\r\n");
-    }
-#endif
-
     //更新NTP时间
     //ntp_update();
 
+    //检测GSM网络注册状态
+    if(sim800c_send_cmd("AT+CREG?","+CREG:0,1",200))//查询信号质量
+    {
+        LOGE("----GSM网络未注册");
+        //return FALSE;
+    }
+
+    //检测GPRS注册状态
+    if(sim800c_send_cmd("AT+CGREG?","+CGREG:0,1",200))//查询信号质量
+    {
+         LOGE("----GPRS网络未注册");
+        //return FALSE;
+    }
+
+    //附着GPRS业务
+    if(sim800c_send_cmd("AT+CGATT=1","OK",1000))//查询信号质量
+    {
+        LOGE("附着GPRS业务失败");
+        //return FALSE;
+    }
+
+#if 0
+    //关闭tcp连接
+    if(sim800c_send_cmd("AT+CIPCLOSE=1","CLOSE OK",1000))
+        LOGE("关闭tcp连接失败");
+    }
+
+    //关闭移动场景
+    if(sim800c_send_cmd("AT+CIPSHUT","SHUT OK",1000))
+    {
+        LOGE("关闭移动场景失败");
+    }
+#endif
+
+    //设置单连接，单连接才支持透传
+    if(sim800c_send_cmd("AT+CIPMUX=0","OK",200))
+    {
+        LOGE("设置单连接失败");
+    }
+
+    //设置连接为透传模式
+    if(sim800c_send_cmd(" AT+CIPMODE=1","OK",200))
+    {
+        LOGE("设置透传模式失败");
+    }
+
+    //设置连接为透传模式参数
+    //3-重传次数为3次， 2-等待数据输入时间为
+    //2*200ms,1024-数据缓冲区为1024个字节
+    //1-开启使用"+++"退出数据模式
+    if(sim800c_send_cmd("AT+CIPCCFG=3,2,1024,1","OK",200))
+    {
+        LOGE("设置透传模式参数失败");
+    }
+
+    //设置GPRS接入点
+    if(sim800c_send_cmd("AT+CSTT=\"CMNET\"","OK",200))
+    {
+        LOGE("设置GPRS接入点失败");
+    }
+
+    //激活移动场景
+    if(sim800c_send_cmd("AT+CIICR","OK",200))
+    {
+        LOGE("激活移动场景失败");
+    }
+
+    //获取本地IP地址
+    if(sim800c_send_cmd("AT+CIFSR","OK",200))
+    {
+        LOGE("获取本地IP地址失败");
+    }
+
+    //开始连接服务器
+    sprintf((char*)p,"AT+CIPSTART=\"TCP\",\"%s\",\"%s\"",HOST_IP,HOST_PORT);
+    if(sim800c_send_cmd(p,"CONNECT",500))
+    {
+        LOGE("连接服务器失败");
+        return FALSE;
+    }
+
+#if 0
     sim800c_send_cmd("AT+CIPCLOSE=1","CLOSE OK",100);   //关闭连接
     sim800c_send_cmd("AT+CIPSHUT","SHUT OK",100);       //关闭移动场景 
+    
     if(sim800c_send_cmd("AT+CGCLASS=\"B\"","OK",1000)) 
         return FALSE;             //设置GPRS移动台类别为B,支持包交换和数据交换 
     if(sim800c_send_cmd("AT+CGDCONT=1,\"IP\",\"CMNET\"","OK",1000))
         return FALSE;//设置PDP上下文,互联网接协议,接入点等信息
-    sim800c_send_cmd("AT+CGATT=1","OK",1000); //附着GPRS业务
-        //return FALSE;                    
+
     if(sim800c_send_cmd("AT+CIPCSGP=1,\"CMNET\"","OK",500))
         return FALSE;        //设置为GPRS连接模式
         
@@ -557,8 +630,8 @@ u8 connect_to_server(void)
         }
         delay_ms(1000);
     }
-
-    return FALSE;
+#endif
+    return TRUE;
 }
 
 
@@ -569,37 +642,15 @@ u8 subscribe_mqtt(void)
     u16 len;
     //发起mqtt_connect请求
     len=mqtt_connect_message(mqtt_msg, g_clent_id , USRNAME, PASSWD);//id,用户名和密码
-    PrintHex(mqtt_msg,len);
-    sprintf((char*)send_cmd, "AT+CIPSEND=%d", len);//接收到的字节数
-    USART3_RX_STA = 0;
-    if(sim800c_send_cmd(send_cmd,">",200)==0)//发送数据成功
-    {
-        u3_printf_hex(mqtt_msg, len);
-        delay_ms(1000);                      //必须加延时
-        //sim800c_send_cmd((u8*)0X1A,0,0);   //CTRL+Z,结束数据发送,启动一次传输
-        LOGI("MQTT握手成功.");
-    }else if(sim800c_send_cmd(send_cmd,"ERROR",200)==0){
-        LOGE("MQTT握手失败.");
-        return FALSE;
-    }
+    u3_printf_hex(mqtt_msg, len);
+    //处理响应
+    delay_ms(1000);
 
 
     len=mqtt_subscribe_message(mqtt_msg,TOPIC_SUB,1,1);//订阅test主题
-    //printf("send len = %d\r\n", len);
-    //LOGI("mqtt_subscribe... \r\n");
-    PrintHex(mqtt_msg,len);
-    sprintf((char*)send_cmd, "AT+CIPSEND=%d", len);//接收到的字节数
-    if(sim800c_send_cmd(send_cmd,">",200)==0)//发送数据
-    {
-        u3_printf_hex(mqtt_msg, len);
-        delay_ms(500);                 //必须加延时
-        //sim800c_send_cmd((u8*)0X1A,0,0);    //CTRL+Z,结束数据发送,启动一次传输
-        LOGI("MQTT订阅主题成功.");
-    }
-    else if(sim800c_send_cmd(send_cmd,"ERROR",200)==0){
-        LOGE("MQTT订阅主题失败.");
-        return FALSE;
-    }
+    u3_printf_hex(mqtt_msg, len);
+    //处理响应
+    delay_ms(1000);
 
     return TRUE;
 }
@@ -620,31 +671,8 @@ u8 send_keep_alive_mesaage(void)
     len = MQTTSerialize_publish((unsigned char*)mqtt_msg, sizeof(mqtt_msg), 0 ,0, 0, 0, top, msg, strlen(msg));
     //PrintHex(mqtt_msg,len);
 
-    //如果大于254个字节，需要分多次发送,每次发送200个字节
-    u8 t = 0 ;  //记录已经发送的次数
-    while(len > 254){
-        sprintf((char*)send_cmd, "AT+CIPSEND=%d", 200);//接收到的字节数
-        if(sim800c_send_cmd(send_cmd,">",200)==0)//发送数据
-        {
-            u3_printf_hex(mqtt_msg + t*200, 200);
-            delay_ms(200);                //必须加延时
-            //USART3_RX_STA = 0;
-        }
-        t++;
-        len = len - 200;
-    }
-
-    sprintf((char*)send_cmd, "AT+CIPSEND=%d", len);//接收到的字节数
-    if(sim800c_send_cmd(send_cmd,">",200)==0)//发送数据
-    {
-        u3_printf_hex(mqtt_msg + t*200, len);
-        delay_ms(200);                  //必须加延时
-        //USART3_RX_STA=0;
-    }else if (sim800c_send_cmd(send_cmd,"ERROR",200)==0){
-        //发送失败，连接可能断开
-        LOGE("发送保活信令失败.");
-        return FALSE;
-    }
+    //发送数据
+    u3_printf_hex(mqtt_msg, len);
 
     return TRUE;
 }
@@ -684,12 +712,8 @@ u8 recv_mqtt_message(s8* trade)
            LOGI("收到服务器消息=%s",   mqtt_msg);
            //发送ACK包
            u8 ack[4] ={0x40, 0x02, (0xff00&msgid)>>8, 0xff&msgid};
-           if(sim800c_send_cmd("AT+CIPSEND=4",">",200)==0){
-               //LOGD("返回ACK包");
-               u3_printf_hex(ack, sizeof(ack));
-               delay_ms(200);
-           }
-
+           u3_printf_hex(ack, sizeof(ack));
+           //LOGD("返回ACK包");
            *trade = parse_service_message_common(mqtt_msg, sizeof(mqtt_msg));
            return TRUE;
        }
@@ -697,21 +721,6 @@ u8 recv_mqtt_message(s8* trade)
             //不是服务器消息，清除接受缓冲
             USART3_RX_STA = 0;
        }
-
-       #if 0
-       p2=strstr((char*)USART3_RX_BUF,"+IPD");
-       if(p2)//接收到TCP/UDP数据
-       {
-           int recv_len = 0;
-           p2 = strstr((char*)USART3_RX_BUF,",");
-           p3 = strstr((char*)USART3_RX_BUF,":");
-           *p3 = 0;//加入结束符
-           recv_len = atoi(p2+1);
-           *(p3 + 1 + recv_len) = 0; //只显示接收到的数据
-           LOGD("收到%d个字节，内容如下:%s", recv_len, p3+1);
-           PrintHex((u8*)p3+1, recv_len);
-       }
-       #endif
 
        USART3_RX_STA=0;
        return FALSE;
@@ -722,11 +731,8 @@ u8 recv_mqtt_message(s8* trade)
 
 
 
-
-
 u8 send_start_consume_mesaage(void)
 {
-
     u16 len;
     u8 msg[200]={0}; //信令内容
 
@@ -736,17 +742,7 @@ u8 send_start_consume_mesaage(void)
     MQTTString top = MQTTString_initializer;
     top.cstring = TOPIC_PUB;
     len = MQTTSerialize_publish((unsigned char*)mqtt_msg, sizeof(mqtt_msg), 0 ,0, 0, 0, top, msg, strlen(msg));
-    sprintf((char*)send_cmd, "AT+CIPSEND=%d", len);//要发送的数据长度
-    if(sim800c_send_cmd(send_cmd,">",200)==0)//发送数据
-    {
-       u3_printf_hex(mqtt_msg, len);
-       delay_ms(500);                  //必须加延时
-       //USART3_RX_STA=0;
-    }else if (sim800c_send_cmd(send_cmd,"ERROR",200)==0){
-       //发送失败，连接可能断开
-       LOGE("发送开始消费信令失败.");
-       return FALSE;
-    }
+    u3_printf_hex(mqtt_msg, len);
 
     return TRUE;
 }
@@ -767,18 +763,8 @@ u8 send_consume_mesaage(u8 ic_flag, u8 finish_flag)
     MQTTString top = MQTTString_initializer;
     top.cstring = TOPIC_PUB;
     len = MQTTSerialize_publish((unsigned char*)mqtt_msg, sizeof(mqtt_msg), 0 ,0, 0, 0, top, msg, strlen(msg));
-    sprintf((char*)send_cmd, "AT+CIPSEND=%d", len);//要发送的数据长度
-    if(sim800c_send_cmd(send_cmd,">",200)==0)//发送数据
-    {
-        u3_printf_hex(mqtt_msg, len);
-        delay_ms(500);                  //必须加延时
-        //USART3_RX_STA=0;
-        return TRUE;
-    }else if (sim800c_send_cmd(send_cmd,"ERROR",200)==0){
-        //发送失败，连接可能断开
-        LOGE("发送扣费信息失败.");
-        return FALSE;
-    }
+
+    u3_printf_hex(mqtt_msg, len);
 
     return FALSE;
 }
@@ -834,19 +820,10 @@ u8 deal_app_cousume_command(s8 ok_flag)
     MQTTString top = MQTTString_initializer;
     top.cstring = TOPIC_PUB;
     len = MQTTSerialize_publish((unsigned char*)mqtt_msg, sizeof(mqtt_msg), 0 ,0, 0, 0, top, msg, strlen(msg));
-    sprintf((char*)send_cmd, "AT+CIPSEND=%d", len);//要发送的数据长度
-    if(sim800c_send_cmd(send_cmd,">",200)==0)//发送数据
-    {
-       u3_printf_hex(mqtt_msg, len);
-       delay_ms(500);//必须加延时
 
-       return TRUE;
-    }else {
-       //发送失败，连接可能断开
-       LOGE("发送app消费请求响应失败.");
-       return FALSE;
-    }
+    u3_printf_hex(mqtt_msg, len);
 
+    return TRUE;
 }
 
 
