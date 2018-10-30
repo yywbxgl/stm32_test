@@ -171,6 +171,15 @@ void main_loop(void)
                         g_consume_time = 0;  //开始计费
                         DCF_Set();           //打开电磁阀
                    }
+                   else
+                   {
+                      //等待卡片移走置位状态
+                      while(read_card() == TRUE)
+                      {
+                          delay_ms(100);
+                      }
+                      g_state = WAIT_IC;
+                   }
                }
            }
 
