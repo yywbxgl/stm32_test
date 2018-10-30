@@ -24,7 +24,7 @@
 #include <string.h>
 
 
-u8 mqtt_msg[400]={0}; //mqtt消息包
+u8 mqtt_msg[1000]={0}; //mqtt消息包
 u8 send_cmd[20]= {0};
 
 
