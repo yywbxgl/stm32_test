@@ -92,6 +92,7 @@ enum{
     MQTT_OK,   //mqtt订阅成功  -> 等待IC卡
     WAIT_IC,   //等待IC卡
     ON_IC,     //检测到IC卡
+    WAIT_CONSUME_RESPONSE, //等待开始消费请求响应
     IC_CONSUME,  //IC卡开始消费
     APP_CONSUME, // app开始消费
     NOT_AUTH,

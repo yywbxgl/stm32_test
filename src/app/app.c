@@ -85,6 +85,7 @@ void main_loop(void)
             {
                 //网络断开重新连接
                 if(sim800c_tcp_check() == FALSE){
+                    LOGE("网络异常！");
                     g_state = INIT;
                     continue;
                 }
@@ -137,12 +138,8 @@ void main_loop(void)
             setOnFlag(); //打开数码数码管显示当前设备状态
             if(send_start_consume_mesaage() == TRUE){
                 //发送开始消费请求，等待响应
-                LOGI("开始刷卡消费！");
-                TIM3_Int_Init(g_logRate*1000, 52000); //每隔g_logRate发送一消费信息
-                TIM_Cmd(TIM3, ENABLE);//打开定时器
-                g_state = IC_CONSUME;
-                g_consume_time = 0;  //开始计费
-                DCF_Set();           //打开电磁阀
+                LOGI("发送刷卡消费信息成功，等待服务器响应！");
+                g_state = WAIT_CONSUME_RESPONSE;
             }else{
                 //等待卡片移走置位状态
                 while(read_card() == TRUE)
@@ -152,6 +149,32 @@ void main_loop(void)
                 g_state = WAIT_IC;
             }
         }
+        else if(g_state == WAIT_CONSUME_RESPONSE){
+            memset(g_Digitron, WAIT_CONSUME_RESPONSE, sizeof(g_Digitron));
+            if(read_card()== FALSE)
+            {
+                g_state = WAIT_IC;
+            }
+
+           //等待服务消息回复开始消费指令
+           s8 trade = 0;
+           if (recv_mqtt_message(&trade) == TRUE)
+           {
+               if(2 == trade)
+               {
+                   if(parse_start_consume_response(mqtt_msg, sizeof(mqtt_msg)) == TRUE)
+                   {
+                        LOGI("开始IC卡消费！");
+                        TIM3_Int_Init(g_logRate*1000, 52000); //每隔g_logRate发送一消费信息
+                        TIM_Cmd(TIM3, ENABLE);//打开定时器
+                        g_state = IC_CONSUME;
+                        g_consume_time = 0;  //开始计费
+                        DCF_Set();           //打开电磁阀
+                   }
+               }
+           }
+
+        }
         else if(g_state == IC_CONSUME){
             setOnFlag();  //打开数码管，显示卡内余额
 
@@ -160,7 +183,7 @@ void main_loop(void)
             {
                 //网络断开??
                 if(sim800c_tcp_check() == FALSE){
-                    ;
+                    LOGE("网络异常！");
                     //g_state = INIT;
                     //continue;
                 }
@@ -213,7 +236,7 @@ void main_loop(void)
             {
                 //网络断开??
                 if(sim800c_tcp_check() == FALSE){
-                    ;
+                    LOGE("网络异常！");
                     //g_state = INIT;
                     //continue;
                 }
@@ -729,36 +752,13 @@ u8 send_start_consume_mesaage(void)
        u3_printf_hex(mqtt_msg, len);
        delay_ms(500);                  //必须加延时
        //USART3_RX_STA=0;
-    }else if (sim800c_send_cmd(send_cmd,"ERROR",200)==0){
+    }else {
        //发送失败，连接可能断开
        LOGE("发送开始消费信令失败.");
        return FALSE;
     }
 
-
-    //等待消息回复，超时10秒
-    u16 t=500;
-    while(t--)
-    {
-        s8 trade = 0;
-        if (recv_mqtt_message(&trade) == TRUE)
-        {
-            if(2 == trade)
-            {
-                if(parse_start_consume_response(mqtt_msg, sizeof(mqtt_msg)) == TRUE)
-                {
-                    return TRUE;
-                }
-                else
-                {
-                    return FALSE;
-                }
-            }
-        }
-        delay_ms(10);
-    }
-
-    return FALSE;
+    return TRUE;
 }
 
 
