@@ -39,10 +39,13 @@ void main_loop(void)
             setOnFlag();
             if (connect_to_server() == TRUE){
                 char device_auth[24] = "868926036902861";
-                char  device_auth_2[24] = "869627039319199";
+                char device_auth_2[24] = "869627039319199";
+                char device_auth_3[24] = "869627039330634";
                 if (strncmp(g_device_code, device_auth, strlen(device_auth)) == 0)
                     g_state = TCP_OK;
                 else if (strncmp(g_device_code, device_auth_2, strlen(device_auth_2)) == 0)
+                    g_state = TCP_OK;
+                else if (strncmp(g_device_code, device_auth_3, strlen(device_auth_3)) == 0)
                     g_state = TCP_OK;
                 else{
                     LOGE("设备未授权. 当前设备序列号为：%s", g_device_code);
@@ -136,7 +139,7 @@ void main_loop(void)
                 //发送开始消费请求，等待响应
                 LOGI("开始刷卡消费！");
                 TIM3_Int_Init(g_logRate*1000, 52000); //每隔g_logRate发送一消费信息
-                
+                TIM_Cmd(TIM3, ENABLE);//打开定时器
                 g_state = IC_CONSUME;
                 g_consume_time = 0;  //开始计费
                 DCF_Set();           //打开电磁阀
@@ -474,7 +477,7 @@ u8 connect_to_server(void)
     LOGI("检测到序列号: %s", g_device_code); //保存sim卡序列号作为设备序列号
     USART3_RX_STA=0;
     //组装ClientID
-    strncpy(g_clent_id + strlen(g_clent_id), (char*)g_device_code, sizeof(g_device_code));
+    strncpy(g_clent_id + strlen(GROUPID), (char*)g_device_code, sizeof(g_device_code));
     LOGD("客户端ID:%s", g_clent_id);
 
     //检测信号强度
