@@ -153,7 +153,7 @@ void main_loop(void)
             memset(g_Digitron, WAIT_CONSUME_RESPONSE, sizeof(g_Digitron));
             if(read_card()== FALSE)
             {
-                g_state = WAIT_IC;
+                 g_state = WAIT_IC;
             }
 
            //等待服务消息回复开始消费指令
@@ -424,6 +424,16 @@ u8 read_card(void)
     status=MIF_READ(buf,28); //读卡，读取7扇区0块数据到buffer[0]-buffer[15]
     if(status != FM1702_OK)
     {
+        //多次检测卡片，防止接触不良造成的抖动
+        int t=10;
+        while(t--)
+        {
+            status=MIF_READ(buf,28);
+            if(status == FM1702_OK){
+                return TRUE;
+            }
+            delay_ms(100);
+        }
         LOGI("卡片被移走");
         return FALSE;
     }
