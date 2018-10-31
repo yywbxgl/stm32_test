@@ -91,6 +91,14 @@ void main_loop(void)
                 }
             }
 
+            if (g_has_offline_order == TRUE){
+                if(send_offline_mesaage() == FALSE){
+                    LOGE("网络异常！");
+                    g_state = INIT;
+                    continue;
+                }
+            }
+            
             //处理服务器消息
             s8 trade =  0;
             if (recv_mqtt_message(&trade) == TRUE)
@@ -192,9 +200,9 @@ void main_loop(void)
             {
                 //网络断开??
                 if(sim800c_tcp_check() == FALSE){
-                    LOGE("网络异常！");
-                    //g_state = INIT;
-                    //continue;
+                    LOGE("网络异常！继续离线消费.");
+                    //标记离线订单，下次重连发送订单消费信息
+                    g_has_offline_order = TRUE;
                 }
             }
             
@@ -638,7 +646,7 @@ u8 subscribe_mqtt(void)
 u8 send_keep_alive_mesaage(void)
 {
     u16 len;
-    u8 msg[300]={0}; //信令内容
+    char msg[300]={0}; //信令内容
     LOGD("发送MQTT保活信令.");
     create_keep_alive_message(msg, sizeof(msg));
     //PrintHex(msg, strlen(msg));
@@ -646,7 +654,7 @@ u8 send_keep_alive_mesaage(void)
 
     MQTTString top = MQTTString_initializer;
     top.cstring = TOPIC_PUB;
-    len = MQTTSerialize_publish((unsigned char*)mqtt_msg, sizeof(mqtt_msg), 0 ,0, 0, 0, top, msg, strlen(msg));
+    len = MQTTSerialize_publish(mqtt_msg, sizeof(mqtt_msg), 0 ,0, 0, 0, top, (unsigned char*)msg, strlen(msg));
     //PrintHex(mqtt_msg,len);
 
     //如果大于254个字节，需要分多次发送,每次发送200个字节
@@ -707,7 +715,7 @@ u8 recv_mqtt_message(s8* trade)
            
            MQTTDeserialize_publish(&dup, &qos, &retained, &msgid, &receivedTopic,
                                &payload_in, &payloadlen_in, USART3_RX_BUF, sizeof(USART3_RX_BUF));
-           strncpy(mqtt_msg, payload_in, payloadlen_in);
+           strncpy((char*)mqtt_msg, (char*)payload_in, payloadlen_in);
            mqtt_msg[payloadlen_in] = 0;
            //LOGI("收到服务器消息1[msgId:%d]=%s\n",  msgid, payload_in);
            LOGI("收到服务器消息=%s",   mqtt_msg);
@@ -757,14 +765,14 @@ u8 send_start_consume_mesaage(void)
 {
 
     u16 len;
-    u8 msg[200]={0}; //信令内容
+    char msg[200]={0}; //信令内容
 
     create_start_consume_message(msg, sizeof(msg));
     LOGD("发送开始消费信令:%s.", msg);
 
     MQTTString top = MQTTString_initializer;
     top.cstring = TOPIC_PUB;
-    len = MQTTSerialize_publish((unsigned char*)mqtt_msg, sizeof(mqtt_msg), 0 ,0, 0, 0, top, msg, strlen(msg));
+    len = MQTTSerialize_publish((unsigned char*)mqtt_msg, sizeof(mqtt_msg), 0 ,0, 0, 0, top, (unsigned char*)msg, strlen(msg));
     sprintf((char*)send_cmd, "AT+CIPSEND=%d", len);//要发送的数据长度
     if(sim800c_send_cmd(send_cmd,">",200)==0)//发送数据
     {
@@ -788,14 +796,14 @@ u8 send_consume_mesaage(u8 ic_flag, u8 finish_flag)
 {
 
     u16 len;
-    u8 msg[200]={0}; //信令内容
+    char msg[200]={0}; //信令内容
     
     create_consume_message(msg, sizeof(msg), ic_flag, finish_flag);
     LOGD("发送扣费信息:%s", msg);
 
     MQTTString top = MQTTString_initializer;
     top.cstring = TOPIC_PUB;
-    len = MQTTSerialize_publish((unsigned char*)mqtt_msg, sizeof(mqtt_msg), 0 ,0, 0, 0, top, msg, strlen(msg));
+    len = MQTTSerialize_publish((unsigned char*)mqtt_msg, sizeof(mqtt_msg), 0 ,0, 0, 0, top, (unsigned char*)msg, strlen(msg));
     sprintf((char*)send_cmd, "AT+CIPSEND=%d", len);//要发送的数据长度
     if(sim800c_send_cmd(send_cmd,">",200)==0)//发送数据
     {
@@ -805,7 +813,10 @@ u8 send_consume_mesaage(u8 ic_flag, u8 finish_flag)
         return TRUE;
     }else if (sim800c_send_cmd(send_cmd,"ERROR",200)==0){
         //发送失败，连接可能断开
-        LOGE("发送扣费信息失败.");
+        LOGE("发送扣费信息失败.写入离线缓存");
+        //保存订单信息到离线BUFF
+        g_has_offline_order = TRUE;
+        strncpy(g_offline_msg, msg, sizeof(g_offline_msg));
         return FALSE;
     }
 
@@ -856,13 +867,13 @@ u8 deal_app_cousume_command(s8 ok_flag)
     }
 
     u16 len;
-    u8 msg[200]={0}; //信令内容
+    char msg[200]={0}; //信令内容
     create_start_app_consume_response(msg, sizeof(msg), ok_flag, temp_orderNo);//返回成功
     LOGD("发送app消费请求响应:%s", msg);
 
     MQTTString top = MQTTString_initializer;
     top.cstring = TOPIC_PUB;
-    len = MQTTSerialize_publish((unsigned char*)mqtt_msg, sizeof(mqtt_msg), 0 ,0, 0, 0, top, msg, strlen(msg));
+    len = MQTTSerialize_publish((unsigned char*)mqtt_msg, sizeof(mqtt_msg), 0 ,0, 0, 0, top, (unsigned char*)msg, strlen(msg));
     sprintf((char*)send_cmd, "AT+CIPSEND=%d", len);//要发送的数据长度
     if(sim800c_send_cmd(send_cmd,">",200)==0)//发送数据
     {
@@ -885,5 +896,38 @@ u8 deal_command_app_finish(void)
 {
     return parse_finish_app_consume_message(mqtt_msg, sizeof(mqtt_msg));
 }
+
+
+
+//发送离线消费信息
+u8 send_offline_mesaage(void)
+{
+
+    u16 len;
+    LOGD("发送离线消息:%s", g_offline_msg);
+
+    MQTTString top = MQTTString_initializer;
+    top.cstring = TOPIC_PUB;
+    len = MQTTSerialize_publish((unsigned char*)mqtt_msg, sizeof(mqtt_msg), 0 ,0, 0, 0, top, (unsigned char*)g_offline_msg, strlen(g_offline_msg));
+    sprintf((char*)send_cmd, "AT+CIPSEND=%d", len);//要发送的数据长度
+    if(sim800c_send_cmd(send_cmd,">",200)==0)//发送数据
+    {
+        u3_printf_hex(mqtt_msg, len);
+        delay_ms(500);                  //必须加延时
+        //发送成功情况离线缓存
+        g_has_offline_order = FALSE;
+        memset(g_offline_msg, 0, sizeof(g_offline_msg));
+        return TRUE;
+    }else if (sim800c_send_cmd(send_cmd,"ERROR",200)==0){
+        //发送失败，连接可能断开
+        LOGE("发送离线消息失败.");
+        //保存订单信息到离线BUFF
+        return FALSE;
+    }
+
+    return FALSE;
+
+}
+
 
 

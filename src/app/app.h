@@ -64,4 +64,8 @@ u8 deal_app_cousume_command(s8 ok_flag);
 u8 deal_command_app_finish(void);
 
 
+//发送离线消费信息
+u8 send_offline_mesaage(void);
+
+
 #endif

@@ -27,6 +27,9 @@ u8 g_serverCardNo[10] = {0,0,0,0,0,0,0,0,0,0};
 
 u16 g_consume_time = 0;
 
+u8  g_has_offline_order = FALSE;
+char  g_offline_msg[200]= {0};
+
 
 void PrintHex(u8 *buf,u16 len)
 {

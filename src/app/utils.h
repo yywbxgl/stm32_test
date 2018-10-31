@@ -82,7 +82,11 @@ extern u8 g_serverCardNo[10];
 #define M_MAX_MONEY "maxMoney"
 #define M_EXPIRE "expire"
 
+//设备状态全局变量
 extern u16 g_consume_time;
+extern u8  g_has_offline_order;
+extern char  g_offline_msg[200];
+
 
 //设备当前业务状态
 extern u8   g_state;             //设备当前状态
